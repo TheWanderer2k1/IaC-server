@@ -1,0 +1,7 @@
+fastapi
+fastapi[standard]
+aiohttp
+pydot
+pydantic-settings
+rq
+huey

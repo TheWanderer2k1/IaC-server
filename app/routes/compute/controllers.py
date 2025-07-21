@@ -12,7 +12,7 @@ class ServerController:
                  location: dict[str, str]):
         self.cloud_infra_creator = cloud_infra_creator
         self.location = location
-        self.user_workspace_path = settings.workspace_basedir + f"/{location.get("domain")}/{location.get("project")}/{location.get("username")}"
+        self.user_workspace_path = settings.workspace_basedir + f"/{location.get('domain')}/{location.get('project')}/{location.get('username')}"
         # init the user environment if not exists
         dir_path = Path(self.user_workspace_path)
         if not dir_path.exists():
@@ -23,10 +23,10 @@ class ServerController:
         self.cloud_infra = self.cloud_infra_creator.create_infrastructure(
             path_to_tf_workspace=self.user_workspace_path,
             provider_version=settings.openstack_config.get("provider_mapping", "").get("Yoga", ""),
-            auth_url=f"{settings.openstack_config.get("endpoints", "").get("identity", "")}",
-            region=f"{location.get("region")}",
+            auth_url=f"{settings.openstack_config.get('endpoints', '').get('identity', '')}",
+            region=f"{location.get('region')}",
             token=request.headers.get("X-Subject-Token"),
-            tenant_name=f"{location.get("project")}"
+            tenant_name=f"{location.get('project')}"
         )
 
     def list_servers(self):

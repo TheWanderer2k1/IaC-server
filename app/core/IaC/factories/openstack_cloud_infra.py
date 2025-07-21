@@ -1,6 +1,7 @@
 import subprocess
 import json
 import pydot
+from app.config import settings
 from app.core.IaC.lib.graph import DirectedAcyclicGraph
 from .openstack_resource import RESOURCES
 from app.core.IaC.interfaces.cloud_infra_interface import ICloudInfrastructure
@@ -36,7 +37,10 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                     # "user_name": user_name,
                     # "password": password,
                     "token": token,  # Use token for authentication
-                    "tenant_name": tenant_name
+                    "tenant_name": tenant_name,
+                    "endpoint_overrides": {
+                        **settings.openstack_config.get("endpoints", "")
+                    }
                 }
             },
             "resource": {}

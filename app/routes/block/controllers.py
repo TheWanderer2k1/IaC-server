@@ -23,7 +23,7 @@ class BlockVolumeController:
         self.cloud_infra = self.cloud_infra_creator.create_infrastructure(
             path_to_tf_workspace=self.user_workspace_path,
             provider_version=settings.openstack_config.get("provider_mapping", "").get("Yoga", ""),
-            auth_url=f"{settings.openstack_config.get("identity_endpoint", "")}/v3",
+            auth_url=f"{settings.openstack_config.get("endpoints", "").get("identity", "")}",
             region=f"{location.get("region")}",
             token=request.headers.get("X-Subject-Token"),
             tenant_name=f"{location.get("project")}"

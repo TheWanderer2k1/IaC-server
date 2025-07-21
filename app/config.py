@@ -6,7 +6,13 @@ class Settings(BaseSettings):
     app_name: str = "IaC server"
     workspace_basedir: str = r"D:\work_folder\Projects\IaC_user_workspace"
     openstack_config: dict[str, Any] = {
-        "identity_endpoint": "http://controller:5000",
+        "endpoints": {
+            "compute": "http://controller:8774/v2.1/",
+            "identity": "http://controller:5000/v3/",
+            # "image": "http://controller:9292/",
+            # "network": "http://controller:9696/",
+            # "volumev3": ""
+        },
         "provider_mapping": {
             "Epoxy": "",
             "Dalmatian": "",

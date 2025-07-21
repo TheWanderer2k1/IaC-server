@@ -8,7 +8,7 @@ class AuthController:
     async def authentication(auth_request: AuthRequest, response: Response):
         # call openstack authentication server
         async with aiohttp.ClientSession() as session:
-            async with session.post(f"{settings.openstack_config.get("endpoints", "").get("identity", "")}auth/tokens", json={"auth": auth_request.model_dump(exclude_none=True)}) as resp:
+            async with session.post(f"{settings.openstack_config.get('endpoints', '').get('identity', '')}auth/tokens", json={"auth": auth_request.model_dump(exclude_none=True)}) as resp:
                 response_data = await resp.json()
                 if resp.status != 201:
                     response.status_code = resp.status

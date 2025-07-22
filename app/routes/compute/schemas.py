@@ -112,3 +112,12 @@ class ServerUpdateRequest(BaseSchema):
 class ServerCreateImageRequest(BaseSchema):
     name: str
     metadata: dict[str, str] | None = None
+
+class VolumeAttachment(BaseSchema):
+    volumeId: str
+    device: str | None = None
+    tag: str | None = None
+    delete_on_termination: bool = False
+
+class VolumeAttachmentRequest(BaseSchema):
+    volumeAttachment: VolumeAttachment

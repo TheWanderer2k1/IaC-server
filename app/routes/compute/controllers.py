@@ -1,33 +1,17 @@
 import json
-from .schemas import ServerCreateRequest, ServerUpdateRequest, ServerCreateImageRequest
+from .schemas import ServerCreateRequest, ServerUpdateRequest, ServerCreateImageRequest, VolumeAttachmentRequest
 from app.core.IaC.abstracts.cloud_infra_creator import CloudInfrastructureCreator
 from app.config import settings
+from app.base_controller import BaseController
 from fastapi import Request
 from pathlib import Path
 
-class ServerController:
+class ServerController(BaseController):
     def __init__(self, 
                  request: Request,
                  cloud_infra_creator: CloudInfrastructureCreator,
                  location: dict[str, str]):
-        self.cloud_infra_creator = cloud_infra_creator
-        self.location = location
-        self.user_workspace_path = settings.workspace_basedir + f"/{location.get('domain')}/{location.get('project')}/{location.get('username')}"
-        # init the user environment if not exists
-        dir_path = Path(self.user_workspace_path)
-        if not dir_path.exists():
-            dir_path.mkdir(parents=True, exist_ok=True)
-            # git init here
-            # tf init here
-            # 
-        self.cloud_infra = self.cloud_infra_creator.create_infrastructure(
-            path_to_tf_workspace=self.user_workspace_path,
-            provider_version=settings.openstack_config.get("provider_mapping", "").get("Yoga", ""),
-            auth_url=f"{settings.openstack_config.get('endpoints', '').get('identity', '')}",
-            region=f"{location.get('region')}",
-            token=request.headers.get("X-Subject-Token"),
-            tenant_name=f"{location.get('project')}"
-        )
+        super().__init__(request, cloud_infra_creator, location)
 
     def list_servers(self):
         pass
@@ -84,13 +68,66 @@ class ServerController:
                 tfstate = json.load(f)
             for resource in tfstate.get('resources', []):
                 for instance in resource.get('instances', []):
-                    if instance.get('attributes', {}).get('id', "") == server_id:
-                        resource_type = resource.get("type")
+                    if instance.get('attributes', {}).get('id', "") == server_id and \
+                        resource.get("type") == 'openstack_compute_instance_v2' :
                         resource_name = resource.get("name")
                         break
             # delete resource
             self.cloud_infra.delete_resource(
-                tf_resource_type=resource_type,
+                tf_resource_type='openstack_compute_instance_v2',
+                tf_resource_name=resource_name
+            )
+            self.cloud_infra.output_infrastructure()
+            self.cloud_infra.apply_infrastructure()
+            # commit user environment using git
+            #
+            return True
+        except Exception as e:
+            # rollback git reset
+            raise Exception(e)
+        
+    def attach_volume(self,
+                      server_id: str,
+                      volume_attachment_request: VolumeAttachmentRequest):
+        try:
+            # generate infra object
+            volume_attachment_config = volume_attachment_request.model_dump(exclude_none=True)
+            self.cloud_infra.add_resource(
+                tf_resource_type="openstack_compute_volume_attach_v2",
+                tf_resource_name=f"openstack_compute_volume_attach_v2_{self.location.get('domain')}_{self.location.get('project')}_{self.location.get('username')}_dwadad", # auto generated name
+                tf_resource_values={
+                    "instance_id": server_id,
+                    "volume_id": volume_attachment_config["volumeAttachment"].get("volumeId"),
+                    "device": volume_attachment_config["volumeAttachment"].get("device", None),
+                    "tag": volume_attachment_config["volumeAttachment"].get("tag", None),
+                })
+            # apply infra object
+            self.cloud_infra.output_infrastructure()
+            self.cloud_infra.apply_infrastructure()
+            # commit user environment using git
+            #
+            return True
+        except Exception as e:
+            # rollback git reset
+            raise Exception(e)
+        
+    def detach_volume(self,
+                      server_id: str,
+                      volume_id: str):
+        try:
+            # tf_resource_type, tf_resource_name lấy từ tfstate file
+            with open(f"{self.user_workspace_path}/terraform.tfstate", "r") as f:
+                tfstate = json.load(f)
+            for resource in tfstate.get('resources', []):
+                for instance in resource.get('instances', []):
+                    if instance.get('attributes', {}).get('instance_id', "") == server_id and \
+                        instance.get('attributes', {}).get('volume_id', "") == volume_id and \
+                        resource.get("type") == 'openstack_compute_volume_attach_v2' :
+                        resource_name = resource.get("name")
+                        break
+            # delete resource
+            self.cloud_infra.delete_resource(
+                tf_resource_type='openstack_compute_volume_attach_v2',
                 tf_resource_name=resource_name
             )
             self.cloud_infra.output_infrastructure()
@@ -102,26 +139,25 @@ class ServerController:
             # rollback git reset
             raise Exception(e)
 
-class ServerActionController:
-    def add_security_group(server_id: str, addSecurityGroup: dict[str, str]):
+    def add_security_group(self, server_id: str, addSecurityGroup: dict[str, str]):
         pass
 
-    def change_password(server_id: str, changePassword: dict[str, str]):
+    def change_password(self, server_id: str, changePassword: dict[str, str]):
         pass
 
-    def create_backup(server_id: str, createBackup: dict[str, str]):
+    def create_backup(self, server_id: str, createBackup: dict[str, str]):
         pass
 
-    def create_image(server_id: str, createImage: ServerCreateImageRequest):
+    def create_image(self, server_id: str, createImage: ServerCreateImageRequest):
         pass
 
-    def lock(server_id: str, lock: dict[str, str] | None = None):
+    def lock(self, server_id: str, lock: dict[str, str] | None = None):
         pass
 
-    def pause(server_id: str, pause: None = None):
+    def pause(self, server_id: str, pause: None = None):
         pass
 
-    def reboot(server_id: str, reboot: dict[str, str]):
+    def reboot(self, server_id: str, reboot: dict[str, str]):
         pass
 
     def rebuild():

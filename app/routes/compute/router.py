@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from typing import Annotated
 from .controllers import ServerController
 # from .controllers import ServerActionController
-from .schemas import ServerCreateRequest
+from .schemas import ServerCreateRequest, VolumeAttachmentRequest
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
 
 router = APIRouter()
@@ -16,9 +16,7 @@ async def handle_create_server(request: Request,
                                server_create_request: ServerCreateRequest,
                                params: CommonQueryParams):
     try:
-        controller = ServerController(request, 
-                                      infra_creator,
-                                      params)
+        controller = ServerController(request, infra_creator, params)
         # result = controller.create_server(server_create_request)
         q.add_job(controller.create_server, server_create_request=server_create_request)
         return JSONResponse(content={
@@ -32,13 +30,39 @@ async def handle_delete_server(request: Request,
                                server_id: str,
                                params: CommonQueryParams):
     try:
-        controller = ServerController(request, 
-                                      infra_creator,
-                                      params)
+        controller = ServerController(request, infra_creator, params)
         # result = controller.delete_server(server_id)
         q.add_job(controller.delete_server, server_id=server_id)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")
+    
+@router.post("/servers/{server_id}/os-volume_attachments")
+async def handle_attach_volume(request: Request,
+                               server_id: str,
+                               volume_attachment_request: VolumeAttachmentRequest,
+                               params: CommonQueryParams):
+    try:
+        controller = ServerController(request, infra_creator, params)
+        q.add_job(controller.attach_volume, server_id=server_id, volume_attachment_request=volume_attachment_request)
+        return JSONResponse(content={
+            "message": "ok"
+        },status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")
+
+@router.delete("/servers/{server_id}/os-volume_attachments/{volume_id}")
+async def handle_detach_volume(request: Request,
+                               server_id: str,
+                               volume_id: str,
+                               params: CommonQueryParams):
+    try:
+        controller = ServerController(request, infra_creator, params)
+        q.add_job(controller.detach_volume, server_id, volume_id)
+        return JSONResponse(content={
+                "message": "ok"
+            },status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e}")

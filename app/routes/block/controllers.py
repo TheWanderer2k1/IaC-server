@@ -1,33 +1,17 @@
 import json
-from .schemas import BlockVolumeCreateRequest
+from .schemas import BlockVolumeCreateRequest, VolumeAttachRequest, VolumeDetachRequest
 from app.core.IaC.abstracts.cloud_infra_creator import CloudInfrastructureCreator
 from fastapi import Request
 from app.config import settings
 from pathlib import Path
+from app.base_controller import BaseController
 
-class BlockVolumeController: 
+class BlockVolumeController(BaseController): 
     def __init__(self,
                  request: Request,
                  cloud_infra_creator: CloudInfrastructureCreator,
                  location: dict[str, str]):
-        self.cloud_infra_creator = cloud_infra_creator
-        self.location = location
-        self.user_workspace_path = settings.workspace_basedir + f"/{location.get('domain')}/{location.get('project')}/{location.get('username')}"
-        # init the user environment if not exists
-        dir_path = Path(self.user_workspace_path)
-        if not dir_path.exists():
-            dir_path.mkdir(parents=True, exist_ok=True)
-            # git init here
-            # tf init here
-            # 
-        self.cloud_infra = self.cloud_infra_creator.create_infrastructure(
-            path_to_tf_workspace=self.user_workspace_path,
-            provider_version=settings.openstack_config.get("provider_mapping", "").get("Yoga", ""),
-            auth_url=f"{settings.openstack_config.get('endpoints', '').get('identity', '')}",
-            region=f"{location.get('region')}",
-            token=request.headers.get("X-Subject-Token"),
-            tenant_name=f"{location.get('project')}"
-        )
+        super().__init__(request, cloud_infra_creator, location)
 
     def create_volume(self, block_volume_create_request: BlockVolumeCreateRequest):
         try:
@@ -45,7 +29,6 @@ class BlockVolumeController:
                     "name": block_volume_config["volume"].get("name", None),
                     "image_id": block_volume_config["volume"].get("imageRef", None),
                     "volume_type": block_volume_config["volume"].get("volume_type", None),
-                    "network": block_volume_config["volume"].get("networks", None),
                     "metadata": block_volume_config["volume"].get("metadata", None),
                     "consistency_group_id": block_volume_config["volume"].get("consistencygroup_id", None),
                     # "scheduler_hints": {}
@@ -69,13 +52,13 @@ class BlockVolumeController:
                 tfstate = json.load(f)
             for resource in tfstate.get('resources', []):
                 for instance in resource.get('instances', []):
-                    if instance.get('attributes', {}).get('id', "") == volume_id:
-                        resource_type = resource.get("type")
+                    if instance.get('attributes', {}).get('id', "") == volume_id and \
+                        resource.get("type") == 'openstack_blockstorage_volume_v3' :
                         resource_name = resource.get("name")
                         break
             # delete resource
             self.cloud_infra.delete_resource(
-                tf_resource_type=resource_type,
+                tf_resource_type='openstack_blockstorage_volume_v3',
                 tf_resource_name=resource_name
             )
             self.cloud_infra.output_infrastructure()
@@ -86,3 +69,41 @@ class BlockVolumeController:
         except Exception as e:
             # rollback git reset
             raise Exception(e)
+        
+class BlockVolumeActionController(BaseController):
+    def __init__(self,
+                 request: Request,
+                 cloud_infra_creator: CloudInfrastructureCreator,
+                 location: dict[str, str]):
+        super().__init__(request, cloud_infra_creator, location)
+
+    def attach_volume(self, 
+                      project_id,
+                      volume_id,
+                      volume_attach_request: VolumeAttachRequest):
+        # try:
+        #     volume_attach_config = volume_attach_request.model_dump(exclude_none=True)
+        #     self.cloud_infra.add_resource(
+        #         tf_resource_type="",
+        #         tf_resource_name=f"",
+        #         tf_resource_values={
+                    
+        #         }
+        #     )
+        #     # apply infra object
+        #     self.cloud_infra.output_infrastructure()
+        #     self.cloud_infra.apply_infrastructure()
+        #     # commit user environment using git
+        #     #
+        #     return True
+        # except Exception as e:
+        #     # rollback git reset
+        #     raise Exception(e)
+        pass
+
+    def detach_volume(self,
+                      project_id,
+                      volume_id,
+                      volume_detach_request: VolumeDetachRequest):
+        pass
+        

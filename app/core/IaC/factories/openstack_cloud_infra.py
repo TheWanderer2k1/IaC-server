@@ -6,6 +6,7 @@ from app.core.IaC.lib.graph import DirectedAcyclicGraph
 from .openstack_resource import RESOURCES
 from app.core.IaC.interfaces.cloud_infra_interface import ICloudInfrastructure
 from app.core.IaC.lib.Terraform.tf import Terraform # chỗ này nên dùng DI và interface để có thể mở rộng sang tool khác (OpenTofu)
+from app.utils.utils import Utils
 
 class OpenStackCloudInfrastructure(ICloudInfrastructure):
     def __init__(self, path_to_tf_workspace, 
@@ -155,13 +156,21 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
 
     def output_infrastructure(self):
         try:
-            # check if any resource type is empty, if so, remove it from the infrastructure dictionary
-            for tf_resource_type in self.infra_dict['resource'].copy():
-                if not self.infra_dict['resource'][tf_resource_type]:
-                    del self.infra_dict['resource'][tf_resource_type]
-            # if no resource types left, remove the 'resource' key
-            if not self.infra_dict['resource']:
-                del self.infra_dict['resource']
+            # # check if any resource type or resource attribute is empty, if so, remove it
+            # for tf_resource_type in self.infra_dict['resource'].copy():
+            #     if not self.infra_dict['resource'][tf_resource_type]:
+            #         del self.infra_dict['resource'][tf_resource_type]
+            #     else:
+            #         for tf_resource_attr in self.infra_dict['resource'][tf_resource_type].copy():
+            #             if not self.infra_dict['resource'][tf_resource_type][tf_resource_attr]:
+            #                 del self.infra_dict['resource'][tf_resource_type][tf_resource_attr]
+            # # if no resource types left, remove the 'resource' key
+            # if not self.infra_dict['resource']:
+            #     del self.infra_dict['resource']
+
+            # remove all null key-value
+            self.infra_dict = Utils.remove_null_values(self.infra_dict)
+
             with open(f"{self.path_to_tf_workspace}/main.tf.json", "w") as f:
                 json.dump(self.infra_dict, f, indent=2)
             # # debug

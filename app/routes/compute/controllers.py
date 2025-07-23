@@ -5,6 +5,7 @@ from app.config import settings
 from app.base_controller import BaseController
 from fastapi import Request
 from pathlib import Path
+from app.utils.utils import Utils
 
 class ServerController(BaseController):
     def __init__(self, 
@@ -22,7 +23,7 @@ class ServerController(BaseController):
             server_config = server_create_request.model_dump(exclude_none=True)
             self.cloud_infra.add_resource(
                 tf_resource_type="openstack_compute_instance_v2",
-                tf_resource_name=f"openstack_compute_instance_v2_{self.location.get('domain')}_{self.location.get('project')}_{self.location.get('username')}_dwadad", # auto generated name
+                tf_resource_name=Utils.normalize_terraform_name(f"openstack_compute_instance_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"), # auto generated name
                 tf_resource_values={
                     "name": server_config["server"].get("name", None),
                     "image_id": server_config["server"].get("imageRef", None),

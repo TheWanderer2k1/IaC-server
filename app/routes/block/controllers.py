@@ -5,6 +5,7 @@ from fastapi import Request
 from app.config import settings
 from pathlib import Path
 from app.base_controller import BaseController
+from app.utils.utils import Utils
 
 class BlockVolumeController(BaseController): 
     def __init__(self,
@@ -19,7 +20,7 @@ class BlockVolumeController(BaseController):
             block_volume_config = block_volume_create_request.model_dump(exclude_none=True)
             self.cloud_infra.add_resource(
                 tf_resource_type="openstack_blockstorage_volume_v3",
-                tf_resource_name=f"openstack_blockstorage_volume_v3_{self.location.get('domain')}_{self.location.get('project')}_{self.location.get('username')}_dwadad", # auto generated name
+                tf_resource_name=Utils.normalize_terraform_name(f"openstack_compute_instance_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"), # auto generated name
                 tf_resource_values={
                     "size": block_volume_config["volume"].get("size", None),
                     "source_vol_id": block_volume_config["volume"].get("source_volid", None),

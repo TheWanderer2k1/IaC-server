@@ -18,34 +18,25 @@ class ServerController(BaseController):
         pass
 
     def create_server(self, server_create_request: ServerCreateRequest):
-        try:
-            # generate infra object
-            server_config = server_create_request.model_dump(exclude_none=True)
-            self.cloud_infra.add_resource(
-                tf_resource_type="openstack_compute_instance_v2",
-                tf_resource_name=Utils.normalize_terraform_name(f"openstack_compute_instance_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"), # auto generated name
-                tf_resource_values={
-                    "name": server_config["server"].get("name", None),
-                    "image_id": server_config["server"].get("imageRef", None),
-                    "flavor_id": server_config["server"].get("flavorRef", None),
-                    "key_pair": server_config["server"].get("key_name", None),
-                    "security_groups": server_config["server"].get("security_groups", None),
-                    "user_data": server_config["server"].get("user_data", None),
-                    "metadata": server_config["server"].get("metadata", None),
-                    # "stop_before_destroy": server_create_request["server"].stop_before_destroy,
-                    # "force_delete": server_create_request["server"].force_delete,
-                    # "power_state": server_create_request["server"].power_state,
-                    "tags": server_config["server"].get("tags", None),
-                    # "vendor_options": server_create_request["server"].vendor_options,
-                    "network": server_config["server"].get("networks", None),
-                    "block_device": server_config["server"].get("block_device_mapping_v2", None),
-                })
-            # apply infra object
-            self.cloud_infra.output_infrastructure()
-            self.cloud_infra.apply_infrastructure()
-            return True
-        except Exception as e:
-            raise Exception(e)
+        server_config = server_create_request.model_dump(exclude_none=True)
+        return super().create_resource(resource_type="openstack_compute_instance_v2",
+                                       resource_name=Utils.normalize_terraform_name(f"openstack_compute_instance_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
+                                       resource_value={
+                                            "name": server_config["server"].get("name", None),
+                                            "image_id": server_config["server"].get("imageRef", None),
+                                            "flavor_id": server_config["server"].get("flavorRef", None),
+                                            "key_pair": server_config["server"].get("key_name", None),
+                                            "security_groups": server_config["server"].get("security_groups", None),
+                                            "user_data": server_config["server"].get("user_data", None),
+                                            "metadata": server_config["server"].get("metadata", None),
+                                            # "stop_before_destroy": server_create_request["server"].stop_before_destroy,
+                                            # "force_delete": server_create_request["server"].force_delete,
+                                            # "power_state": server_create_request["server"].power_state,
+                                            "tags": server_config["server"].get("tags", None),
+                                            # "vendor_options": server_create_request["server"].vendor_options,
+                                            "network": server_config["server"].get("networks", None),
+                                            "block_device": server_config["server"].get("block_device_mapping_v2", None),
+                                        })
 
     def create_multiple_servers():
         pass
@@ -60,48 +51,21 @@ class ServerController(BaseController):
         pass
 
     def delete_server(self, server_id: str):
-        try:
-            # tf_resource_type, tf_resource_name lấy từ tfstate file
-            with open(f"{self.user_workspace_path}/terraform.tfstate", "r") as f:
-                tfstate = json.load(f)
-            for resource in tfstate.get('resources', []):
-                for instance in resource.get('instances', []):
-                    if instance.get('attributes', {}).get('id', "") == server_id and \
-                        resource.get("type") == 'openstack_compute_instance_v2' :
-                        resource_name = resource.get("name")
-                        break
-            # delete resource
-            self.cloud_infra.delete_resource(
-                tf_resource_type='openstack_compute_instance_v2',
-                tf_resource_name=resource_name
-            )
-            self.cloud_infra.output_infrastructure()
-            self.cloud_infra.apply_infrastructure()
-            return True
-        except Exception as e:
-            raise Exception(e)
+        return super().delete_resource(resource_type="openstack_compute_instance_v2", 
+                                       resource_id=server_id)
         
     def attach_volume(self,
                       server_id: str,
                       volume_attachment_request: VolumeAttachmentRequest):
-        try:
-            # generate infra object
-            volume_attachment_config = volume_attachment_request.model_dump(exclude_none=True)
-            self.cloud_infra.add_resource(
-                tf_resource_type="openstack_compute_volume_attach_v2",
-                tf_resource_name=Utils.normalize_terraform_name(f"openstack_compute_volume_attach_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"), # auto generated name
-                tf_resource_values={
-                    "instance_id": server_id,
-                    "volume_id": volume_attachment_config["volumeAttachment"].get("volumeId"),
-                    "device": volume_attachment_config["volumeAttachment"].get("device", None),
-                    "tag": volume_attachment_config["volumeAttachment"].get("tag", None),
-                })
-            # apply infra object
-            self.cloud_infra.output_infrastructure()
-            self.cloud_infra.apply_infrastructure()
-            return True
-        except Exception as e:
-            raise Exception(e)
+        volume_attachment_config = volume_attachment_request.model_dump(exclude_none=True)
+        return super().create_resource(resource_type="openstack_compute_volume_attach_v2",
+                                       resource_name=Utils.normalize_terraform_name(f"openstack_compute_volume_attach_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
+                                       resource_value={
+                                            "instance_id": server_id,
+                                            "volume_id": volume_attachment_config["volumeAttachment"].get("volumeId"),
+                                            "device": volume_attachment_config["volumeAttachment"].get("device", None),
+                                            "tag": volume_attachment_config["volumeAttachment"].get("tag", None),
+                                        })
         
     def detach_volume(self,
                       server_id: str,

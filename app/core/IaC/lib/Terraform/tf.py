@@ -8,7 +8,7 @@ class Terraform:
     def refresh(self):
         try:
             result = subprocess.run(
-                ["terraform", "apply", "-refresh-only", "-auto-approve"],
+                ["terraform", "plan", "-refresh-only", "-out=terraform.tfplan"],
                 cwd=self.path_to_tf_workspace,
                 capture_output=True,
                 text=True,
@@ -23,7 +23,7 @@ class Terraform:
     def show_json(self):
         try:
             result = subprocess.run(
-                ["terraform", "show", "-json"],
+                ["terraform", "show", "-json", "terraform.tfplan"],
                 cwd=self.path_to_tf_workspace,
                 capture_output=True,
                 text=True,
@@ -38,7 +38,7 @@ class Terraform:
     def graph(self):
         try:
             result = subprocess.run(
-                ["terraform", "graph"],
+                ["terraform", "graph", "-plan=terraform.tfplan"],
                 cwd=self.path_to_tf_workspace,
                 capture_output=True,
                 text=True,

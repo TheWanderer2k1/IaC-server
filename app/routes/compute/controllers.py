@@ -43,11 +43,8 @@ class ServerController(BaseController):
             # apply infra object
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
-            # commit user environment using git
-            #
             return True
         except Exception as e:
-            # rollback git reset
             raise Exception(e)
 
     def create_multiple_servers():
@@ -80,11 +77,8 @@ class ServerController(BaseController):
             )
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
-            # commit user environment using git
-            #
             return True
         except Exception as e:
-            # rollback git reset
             raise Exception(e)
         
     def attach_volume(self,
@@ -95,7 +89,7 @@ class ServerController(BaseController):
             volume_attachment_config = volume_attachment_request.model_dump(exclude_none=True)
             self.cloud_infra.add_resource(
                 tf_resource_type="openstack_compute_volume_attach_v2",
-                tf_resource_name=f"openstack_compute_volume_attach_v2_{self.location.get('domain')}_{self.location.get('project')}_{self.location.get('username')}_dwadad", # auto generated name
+                tf_resource_name=Utils.normalize_terraform_name(f"openstack_compute_volume_attach_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"), # auto generated name
                 tf_resource_values={
                     "instance_id": server_id,
                     "volume_id": volume_attachment_config["volumeAttachment"].get("volumeId"),
@@ -105,11 +99,8 @@ class ServerController(BaseController):
             # apply infra object
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
-            # commit user environment using git
-            #
             return True
         except Exception as e:
-            # rollback git reset
             raise Exception(e)
         
     def detach_volume(self,
@@ -133,11 +124,8 @@ class ServerController(BaseController):
             )
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
-            # commit user environment using git
-            #
             return True
         except Exception as e:
-            # rollback git reset
             raise Exception(e)
 
     def add_security_group(self, server_id: str, addSecurityGroup: dict[str, str]):

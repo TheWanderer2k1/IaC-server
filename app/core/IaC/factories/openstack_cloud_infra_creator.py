@@ -19,8 +19,6 @@ class OpenStackCloudInfrastructureCreator(CloudInfrastructureCreator):
                                                 provider_version=kwargs["provider_version"], 
                                                 auth_url=kwargs["auth_url"],
                                                 region=kwargs["region"],
-                                                # user_name=kwargs["user_name"],
-                                                # password=kwargs["password"],
                                                 token=kwargs["token"],  # Use token for authentication
                                                 tenant_name=kwargs["tenant_name"])
         except Exception as e:

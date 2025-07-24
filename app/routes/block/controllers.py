@@ -37,11 +37,8 @@ class BlockVolumeController(BaseController):
             # apply infra object
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
-            # commit user environment using git
-            #
             return True
         except Exception as e:
-            # rollback git reset
             raise Exception(e)
         
     def delete_volume(self, 
@@ -64,11 +61,8 @@ class BlockVolumeController(BaseController):
             )
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
-            # commit user environment using git
-            #
             return True
         except Exception as e:
-            # rollback git reset
             raise Exception(e)
         
 class BlockVolumeActionController(BaseController):

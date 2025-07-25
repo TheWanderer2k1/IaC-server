@@ -39,6 +39,29 @@ class BaseController:
             return True
         except Exception as e:
             raise Exception(e)
+        
+    def modify_resource(self, resource_type: str, resource_id: str, resource_value: dict[str, str]):
+        try:
+            # tf_resource_type, tf_resource_name lấy từ tfstate file
+            with open(f"{self.user_workspace_path}/terraform.tfstate", "r") as f:
+                tfstate = json.load(f)
+            for resource in tfstate.get('resources', []):
+                for instance in resource.get('instances', []):
+                    if instance.get('attributes', {}).get('id', "") == resource_id and \
+                        resource.get("type") == resource_type :
+                        resource_name = resource.get("name")
+                        break
+            # modify resource
+            self.cloud_infra.modify_resource(
+                resource_type=resource_type,
+                resource_name=resource_name,
+                resource_value=resource_value
+            )
+            self.cloud_infra.output_infrastructure()
+            self.cloud_infra.apply_infrastructure()
+            return True
+        except Exception as e:
+            raise Exception(e)
 
     def delete_resource(self, resource_type: str, resource_id: str):
         try:

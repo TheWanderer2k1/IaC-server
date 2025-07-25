@@ -17,8 +17,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                     tenant_name):
         self.path_to_tf_workspace = path_to_tf_workspace
         self.tf = Terraform(self.path_to_tf_workspace)  # Đang bị gán cứng dùng Terraform
-        # Refresh the infrastructure state
-        # các command khác sẽ dựa vào plan file được sinh ra từ current state của infra -> phải chạy command này và gen được plan file
+        # Refresh the infrastructure state - chỉ refresh được attribute, không import được resource khác
         self._refresh_infrastructure()
         # initialize the infrastructure dictionary with required providers and resources
         self.infra_dict = {

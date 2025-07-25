@@ -1,5 +1,5 @@
 import json
-from .schemas import BlockVolumeCreateRequest, VolumeAttachRequest, VolumeDetachRequest
+from .schemas import BlockVolumeCreateRequest, VolumeAttachRequest, VolumeDetachRequest, VolumeUpdateRequest
 from app.core.IaC.abstracts.cloud_infra_creator import CloudInfrastructureCreator
 from fastapi import Request
 from app.config import settings
@@ -19,7 +19,7 @@ class BlockVolumeController(BaseController):
         return super().create_resource(resource_type="openstack_blockstorage_volume_v3",
                                        resource_name=Utils.normalize_terraform_name(f"openstack_compute_instance_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
                                        resource_value={
-                                        "size": block_volume_config["volume"].get("size", None),
+                                        "size": block_volume_config["volume"].get("size"),
                                         "source_vol_id": block_volume_config["volume"].get("source_volid", None),
                                         "description": block_volume_config["volume"].get("description", None),
                                         "snapshot_id": block_volume_config["volume"].get("snapshot_id", None),
@@ -31,6 +31,20 @@ class BlockVolumeController(BaseController):
                                         "consistency_group_id": block_volume_config["volume"].get("consistencygroup_id", None),
                                         # "scheduler_hints": {}
                                     })
+    
+    def update_volume(self,
+                      project_id: str,
+                      volume_id: str,
+                      volume_update_request: VolumeUpdateRequest):
+        block_volume_config = volume_update_request.model_dump(exclude_none=True)
+        return super().modify_resource(resource_type="openstack_blockstorage_volume_v3",
+                                       resource_id=volume_id,
+                                       resource_values={
+                                            "name": block_volume_config["volume"].get("name", None),
+                                            "size": block_volume_config["volume"].get("size"),
+                                            "volume_type": block_volume_config["volume"].get("volume_type", None),
+                                            "description": block_volume_config["volume"].get("description", None),
+                                       })
         
     def delete_volume(self, 
                       project_id: str, 

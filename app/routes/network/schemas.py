@@ -23,6 +23,18 @@ class Network(BaseSchema):
 class NetworkCreateRequest(BaseSchema):
     network: Network
 
+class NetworkUpdate(BaseSchema):
+    name: str | None = None
+    description: str | None = None
+    admin_state_up: bool | None = None
+    vlan_transparent: bool | None = None
+    port_security_enabled: bool | None = None
+    dns_domain: str | None = None
+    shared: bool | None = None
+
+class NetworkUpdateRequest(BaseSchema):
+    network: NetworkUpdate
+
 class Subnet(BaseSchema):
     tenant_id: str | None = None
     project_id: str | None = None
@@ -47,6 +59,18 @@ class Subnet(BaseSchema):
 
 class SubnetCreateRequest(BaseSchema):
     subnet: Subnet
+
+class SubnetUpdate(BaseSchema):
+    name: str | None = None
+    description: str | None = None
+    enable_dhcp: bool | None = None
+    allocation_pools: dict[str, str] | None = None
+    dns_nameservers: list[str] | None = None
+    gateway_ip: str | None = None
+    service_types: list[str] | None = None
+
+class SubnetUpdateRequest(BaseSchema):
+    subnet: SubnetUpdate
 
 class ExternalFixedIp(BaseSchema):
     subnet_id: str | None = None

@@ -1,5 +1,5 @@
 import json
-from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest
+from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest, NetworkUpdateRequest, SubnetUpdateRequest
 from app.core.IaC.abstracts.cloud_infra_creator import CloudInfrastructureCreator
 from app.config import settings
 from app.base_controller import BaseController
@@ -29,12 +29,26 @@ class NetworkController(BaseController):
                                             # "value_specs": network_config["network"].get("value_specs", None),
                                             "availability_zone_hints": network_config["network"].get("availability_zone_hints", None),
                                             # "tags": network_config["network"].get("tags", None),
-                                            "transparent_vlan": network_config["network"].get("transparent_vlan", None),
+                                            "transparent_vlan": network_config["network"].get("vlan_transparent", None),
                                             "port_security_enabled": network_config["network"].get("port_security_enabled", None),
                                             "mtu": network_config["network"].get("mtu", None),
                                             "dns_domain": network_config["network"].get("dns_domain", None),
                                             "qos_policy_id": network_config["network"].get("qos_policy_id", None),
                                         })
+    
+    def update_network(self, network_id: str, network_update_request: NetworkUpdateRequest):
+        network_config = network_update_request.model_dump(exclude_none=True)
+        return super().modify_resource(resource_type="openstack_networking_network_v2",
+                                       resource_id=network_id,
+                                       resource_values={
+                                            "name": network_config["network"].get("name", None),
+                                            "description": network_config["network"].get("description", None),
+                                            "admin_state_up": network_config["network"].get("admin_state_up", None),
+                                            "transparent_vlan": network_config["network"].get("vlan_transparent", None),
+                                            "shared": network_config["network"].get("shared", None),
+                                            "port_security_enabled": network_config["network"].get("port_security_enabled", None),
+                                            "dns_domain": network_config["network"].get("dns_domain", None),
+                                       })
         
     def delete_network(self, network_id: str):
         return super().delete_resource(resource_type="openstack_networking_network_v2", 
@@ -61,11 +75,24 @@ class NetworkController(BaseController):
                                             "dns_nameservers": subnet_config["subnet"].get("dns_nameservers", None),
                                             "dns_publish_fixed_ip": subnet_config["subnet"].get("dns_publish_fixed_ip", None),
                                             "service_types": subnet_config["subnet"].get("service_types", None),
-                                            "cidr": subnet_config["subnet"].get("cidr", None),
                                             "segment_id": subnet_config["subnet"].get("segment_id", None),
                                             "subnetpool_id": subnet_config["subnet"].get("subnetpool_id", None),
                                             # "value_specs": subnet_config["subnet"].get("value_specs", None),
                                             # "tags": subnet_config["subnet"].get("tags", None),
+                                       })
+    
+    def update_subnet(self, subnet_id: str, subnet_update_request: SubnetUpdateRequest):
+        subnet_config = subnet_update_request.model_dump(exclude_none=True)
+        return super().modify_resource(resource_type="openstack_networking_subnet_v2",
+                                       resource_id=subnet_id,
+                                       resource_values={
+                                            "name": subnet_config["subnet"].get("name", None),
+                                            "description": subnet_config["subnet"].get("description", None),
+                                            "allocation_pool": subnet_config["subnet"].get("allocation_pool", None),
+                                            "gateway_ip": subnet_config["subnet"].get("gateway_ip", None),
+                                            "enable_dhcp": subnet_config["subnet"].get("enable_dhcp", None),
+                                            "dns_nameservers": subnet_config["subnet"].get("dns_nameservers", None),
+                                            "service_types": subnet_config["subnet"].get("service_types", None),
                                        })
     
     def delete_subnet(self, subnet_id: str):

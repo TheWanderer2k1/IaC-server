@@ -40,3 +40,12 @@ class VolumeDetach(BaseSchema):
 
 class VolumeDetachRequest(BaseSchema):
     os_detach: VolumeDetach = Field(validation_alias=AliasChoices("os-detach"))
+                                    
+class VolumeUpdate(BaseSchema):
+    name: str | None = None
+    size: int
+    volume_type: str | None = None
+    description: str | None = None
+
+class VolumeUpdateRequest(BaseSchema):
+    volume: VolumeUpdate

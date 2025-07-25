@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from typing import Annotated
 from .controllers import ServerController
 # from .controllers import ServerActionController
-from .schemas import ServerCreateRequest, VolumeAttachmentRequest
+from .schemas import ServerCreateRequest, VolumeAttachmentRequest, ServerUpdateRequest
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
 
 router = APIRouter()
@@ -25,7 +25,22 @@ async def handle_create_server(request: Request,
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e}")
     
-@router.post("/servers/delete")
+@router.put("/servers/{server_id}")
+async def handle_update_server(request: Request,
+                               server_id: str,
+                               server_update_request: ServerUpdateRequest,
+                               params: CommonQueryParams):
+    try:
+        controller = ServerController(request, infra_creator, params)
+        q.add_job(controller.update_server, server_id=server_id, 
+                                            server_update_request=server_update_request)
+        return JSONResponse(content={
+            "message": "ok"
+        },status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")
+    
+@router.delete("/servers/delete")
 async def handle_delete_server(request: Request,
                                server_id: str,
                                params: CommonQueryParams):

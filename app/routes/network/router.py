@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from typing import Annotated
 from .controllers import NetworkController
 # from .controllers import ServerActionController
-from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest
+from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest, NetworkUpdateRequest, SubnetUpdateRequest
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
 
 router = APIRouter()
@@ -19,6 +19,21 @@ async def handle_create_network(request: Request,
         controller = NetworkController(request, infra_creator, params)
         # result = controller.create_network(network_create_request)
         q.add_job(controller.create_network, network_create_request=network_create_request)
+        return JSONResponse(content={
+            "message": "ok"
+        },status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")
+    
+@router.put("/v2.0/networks/{network_id}")
+async def handle_update_network(request: Request,
+                                network_id: str,
+                                network_update_request: NetworkUpdateRequest,
+                                params: CommonQueryParams):
+    try:
+        controller = NetworkController(request, infra_creator, params)
+        # result = controller.create_network(network_create_request)
+        q.add_job(controller.update_network, network_id=network_id, network_update_request=network_update_request)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
@@ -46,6 +61,20 @@ async def handle_create_subnet(request: Request,
     try:
         controller = NetworkController(request, infra_creator, params)
         q.add_job(controller.create_subnet, subnet_create_request=subnet_create_request)
+        return JSONResponse(content={
+            "message": "ok"
+        },status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")
+
+@router.put("/v2.0/subnets/{subnet_id}")
+async def handle_update_subnet(request: Request,
+                               subnet_id: str,
+                               subnet_update_request: SubnetUpdateRequest,
+                               params: CommonQueryParams):
+    try:
+        controller = NetworkController(request, infra_creator, params)
+        q.add_job(controller.update_subnet, subnet_id=subnet_id, subnet_update_request=subnet_update_request)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
@@ -92,7 +121,7 @@ async def handle_delete_router(request: Request,
         raise HTTPException(status_code=500, detail=f"{e}")
     
 @router.put("/v2.0/routers/{router_id}/add_router_interface")
-async def handle_create_router(request: Request,
+async def handle_add_router_interface(request: Request,
                                router_id: str,
                                add_interface_to_router: AddInterfaceRouterRequest,
                                params: CommonQueryParams):
@@ -106,7 +135,7 @@ async def handle_create_router(request: Request,
         raise HTTPException(status_code=500, detail=f"{e}")
     
 @router.put("/v2.0/routers/{router_id}/remove_router_interface")
-async def handle_create_router(request: Request,
+async def handle_remove_router_interface(request: Request,
                                router_id: str,
                                add_interface_to_router: AddInterfaceRouterRequest,
                                params: CommonQueryParams):

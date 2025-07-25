@@ -37,6 +37,22 @@ class ServerController(BaseController):
                                             "network": server_config["server"].get("networks", None),
                                             "block_device": server_config["server"].get("block_device_mapping_v2", None),
                                         })
+    
+    def update_server(self, server_id: str, server_update_request: ServerUpdateRequest):
+        server_config = server_update_request.model_dump(exclude_none=True)
+        return super().modify_resource(resource_type="openstack_compute_instance_v2",
+                                       resource_id=server_id,
+                                       resource_values={
+                                           "name": server_config["server"].get("name", None),
+                                           "flavor_id": server_config["server"].get("flavor_id", None),
+                                           "flavor_name": server_config["server"].get("flavor_name", None),
+                                           "security_groups": server_config["server"].get("security_groups", None),
+                                           "metadata": server_config["server"].get("metadata", None),
+                                           "admin_pass": server_config["server"].get("admin_pass", None),
+                                           "stop_before_destroy": server_config["server"].get("stop_before_destroy", None),
+                                           "force_delete": server_config["server"].get("force_delete", None),
+                                           "power_state": server_config["server"].get("power_state", None),
+                                       })
 
     def create_multiple_servers():
         pass
@@ -45,9 +61,6 @@ class ServerController(BaseController):
         pass
 
     def get_server(server_id: str):
-        pass
-
-    def update_server(server_id: str, server: ServerUpdateRequest):
         pass
 
     def delete_server(self, server_id: str):

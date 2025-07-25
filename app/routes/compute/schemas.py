@@ -101,13 +101,30 @@ class ServerCreateRequest(BaseSchema):
     server: Server
     # scheduler_hints: SchedulerHints | None = Field(default=None, validation_alias=AliasChoices("os:scheduler_hints", "OS-SCH-HNT:scheduler_hints"))   # destructive option
 
-class ServerUpdateRequest(BaseSchema):
-    accessIPv4: str | None = None
-    accessIPv6: str | None = None
+class ServerUpdate(BaseSchema):
     name: str | None = None
-    hostname: str | None = None
-    disk_config: str | None = Field(default=None, alias='OS-DCF:diskConfig')
-    description: str | None = None
+    # image_id: str | None = None
+    # image_name: str | None = None
+    flavor_id: str | None = None
+    flavor_name: str | None = None
+    security_groups: list[str] | None = None
+    metadata: dict[str, str] | None = None
+    # admin_pass: str | None = None
+    # personality
+    stop_before_destroy: bool | None = None
+    force_delete: bool | None = None
+    power_state: str | None = None
+    # tags: list[str] | None = None
+    # vendor_options
+
+    @model_validator(mode='after')
+    def validate_flavorRef(self):
+        if self.flavor_id and self.flavor_name:
+            raise ValueError("'flavor_id' and 'flavor_name' cannot exist simutanously.")
+        return self
+
+class ServerUpdateRequest(BaseSchema):
+    server: ServerUpdate
 
 class ServerCreateImageRequest(BaseSchema):
     name: str

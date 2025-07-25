@@ -17,12 +17,12 @@ class ICloudInfrastructure(ABC):
         pass
 
     @abstractmethod
-    def add_resource(self, resource_type, resource_name, **kwargs):
+    def add_resource(self, resource_type, resource_name, resource_values, **kwargs):
         """Add a resource to the infrastructure."""
         pass
 
     @abstractmethod
-    def modify_resource(self, resource_type, resource_name, **kwargs):
+    def modify_resource(self, resource_type, resource_name, resource_values, **kwargs):
         """Modify an existing resource in the infrastructure."""
         pass
 

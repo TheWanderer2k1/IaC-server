@@ -27,12 +27,12 @@ class BaseController:
             tenant_name=f"{location.get('project')}"
         )
 
-    def create_resource(self, resource_type: str, resource_name: str, resource_value: dict[str, str]):
+    def create_resource(self, resource_type: str, resource_name: str, resource_values: dict[str, str]):
         try:
             self.cloud_infra.add_resource(
-                tf_resource_type=resource_type,
-                tf_resource_name=resource_name,
-                tf_resource_values=resource_value)
+                resource_type=resource_type,
+                resource_name=resource_name,
+                resource_values=resource_values)
             # apply infra object
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
@@ -40,9 +40,9 @@ class BaseController:
         except Exception as e:
             raise Exception(e)
         
-    def modify_resource(self, resource_type: str, resource_id: str, resource_value: dict[str, str]):
+    def modify_resource(self, resource_type: str, resource_id: str, resource_values: dict[str, str]):
         try:
-            # tf_resource_type, tf_resource_name lấy từ tfstate file
+            # resource_type, resource_name lấy từ tfstate file
             with open(f"{self.user_workspace_path}/terraform.tfstate", "r") as f:
                 tfstate = json.load(f)
             for resource in tfstate.get('resources', []):
@@ -55,7 +55,7 @@ class BaseController:
             self.cloud_infra.modify_resource(
                 resource_type=resource_type,
                 resource_name=resource_name,
-                resource_value=resource_value
+                resource_values=resource_values
             )
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
@@ -65,7 +65,7 @@ class BaseController:
 
     def delete_resource(self, resource_type: str, resource_id: str):
         try:
-            # tf_resource_type, tf_resource_name lấy từ tfstate file
+            # resource_type, resource_name lấy từ tfstate file
             with open(f"{self.user_workspace_path}/terraform.tfstate", "r") as f:
                 tfstate = json.load(f)
             for resource in tfstate.get('resources', []):
@@ -76,8 +76,8 @@ class BaseController:
                         break
             # delete resource
             self.cloud_infra.delete_resource(
-                tf_resource_type=resource_type,
-                tf_resource_name=resource_name
+                resource_type=resource_type,
+                resource_name=resource_name
             )
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()

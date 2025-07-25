@@ -80,3 +80,46 @@ class RouterCreateRequest(BaseSchema):
 class AddInterfaceRouterRequest(BaseSchema):
     subnet_id: str | None = None
     port_id: str | None = None
+
+class PortFixedIp(BaseSchema):
+    subnet_id: str | None = None
+    ip_address: str | None = None
+
+class PortAllowedAddressPair(BaseSchema):
+    ip_address: str
+    mac_address: str | None = None
+
+class PortExtraDHCPOpts(BaseSchema):
+    name: str
+    value: str
+    ip_version: str | None = None
+
+class Port(BaseSchema):
+    admin_state_up: bool | None = None
+    allowed_address_pairs: list[PortAllowedAddressPair] | None = None
+    # binding_host_id: str | None = Field(default=None, validation_alias=AliasChoices("binding:host_id"))
+    # binding_profile: 
+    # binding_vnic_type: str | None = Field(default=None, validation_alias=AliasChoices("binding:vnic_type"))
+    description: str | None = None
+    device_id: str | None = None
+    device_owner: str | None = None
+    dns_domain: str | None = None
+    dns_name: str | None = None
+    extra_dhcp_opts: PortExtraDHCPOpts | None = None
+    fixed_ips: list[PortFixedIp] | None = None
+    # hints:
+    mac_address: str | None = None
+    name: str | None = None
+    network_id: str
+    numa_affinity_policy: str | None = None
+    port_security_enabled: bool | None = None
+    project_id: str | None = None
+    qos_policy_id: str | None = None
+    security_groups: list[str] | None = None
+    tenant_id: str | None = None
+    propagate_uplink_status: bool | None = None
+    mac_learning_enabled: bool | None = None
+    port_trusted_vif: bool | None = None
+
+class PortCreateRequest(BaseSchema):
+    port: Port

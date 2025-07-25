@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from typing import Annotated
 from .controllers import NetworkController
 # from .controllers import ServerActionController
-from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest
+from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
 
 router = APIRouter()
@@ -116,6 +116,32 @@ async def handle_create_router(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")
+    
+@router.post("/v2.0/ports")
+async def handle_create_port(request: Request,
+                               port_create_request: PortCreateRequest,
+                               params: CommonQueryParams):
+    try:
+        controller = NetworkController(request, infra_creator, params)
+        q.add_job(controller.create_port, port_create_request=port_create_request)
+        return JSONResponse(content={
+            "message": "ok"
+        },status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")
+    
+@router.delete("/v2.0/ports/{port_id}")
+async def handle_delete_port(request: Request,
+                               port_id: str,
+                               params: CommonQueryParams):
+    try:
+        controller = NetworkController(request, infra_creator, params)
+        q.add_job(controller.delete_port, port_id=port_id)
+        return JSONResponse(content={
+                "message": "ok"
+            },status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e}")
     

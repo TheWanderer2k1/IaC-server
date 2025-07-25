@@ -1,5 +1,5 @@
 import json
-from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest
+from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest
 from app.core.IaC.abstracts.cloud_infra_creator import CloudInfrastructureCreator
 from app.config import settings
 from app.base_controller import BaseController
@@ -136,3 +136,34 @@ class NetworkController(BaseController):
             return True
         except Exception as e:
             raise Exception(e)
+        
+    def create_port(self, port_create_request: PortCreateRequest):
+        port_config = port_create_request.model_dump(exclude_none=True)
+        return super().create_resource(resource_type="openstack_networking_port_v2",
+                                       resource_name=Utils.normalize_terraform_name(f"openstack_networking_port_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
+                                       resource_value={
+                                            "name": port_config["port"].get("name", None),
+                                            "description": port_config["port"].get("description", None),
+                                            "network_id": port_config["port"].get("network_id"),
+                                            "admin_state_up": port_config["port"].get("admin_state_up", None),
+                                            "mac_address": port_config["port"].get("mac_address", None),
+                                            "tenant_id": port_config["port"].get("tenant_id", None),
+                                            "device_owner": port_config["port"].get("device_owner", None),
+                                            "security_group_ids": port_config["port"].get("security_groups", None),
+                                            # "no_security_groups": port_config["port"].get("no_security_groups", None),
+                                            "device_id": port_config["port"].get("device_id", None),
+                                            "fixed_ip": port_config["port"].get("fixed_ips", None),
+                                            # "no_fixed_ip": port_config["port"].get("no_fixed_ip", None),
+                                            "allowed_address_pairs": port_config["port"].get("allowed_address_pairs", None),
+                                            "extra_dhcp_option": port_config["port"].get("extra_dhcp_opts", None),
+                                            "port_security_enabled": port_config["port"].get("port_security_enabled", None),
+                                            # "value_specs": port_config["port"].get("value_specs", None),
+                                            "tags": port_config["port"].get("tags", None),
+                                            # "binding": port_config["port"].get("binding", None),
+                                            "dns_name": port_config["port"].get("dns_name", None),
+                                            "qos_policy_id": port_config["port"].get("qos_policy_id", None),
+                                       })
+    
+    def delete_port(self, port_id: str):
+        return super().delete_resource(resource_type="openstack_networking_port_v2",
+                                       resource_id=port_id)

@@ -19,8 +19,8 @@ async def handle_create_volume(request: Request,
         controller = BlockVolumeController(request,
                                            infra_creator,
                                            params)
-        q.add_job(controller.create_volume, block_volume_create_request=block_volume_create_request)
-        # controller.create_volume(block_volume_create_request)
+        # q.add_job(controller.create_volume, block_volume_create_request=block_volume_create_request)
+        controller.create_volume(block_volume_create_request)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
@@ -35,9 +35,10 @@ async def handle_update_volume(request: Request,
                                params: CommonQueryParams):
     try:
         controller = BlockVolumeController(request, infra_creator, params)
-        q.add_job(controller.update_volume, project_id=project_id,
-                                            volume_id=volume_id, 
-                                            volume_update_request=volume_update_request)
+        # q.add_job(controller.update_volume, project_id=project_id,
+        #                                     volume_id=volume_id, 
+        #                                     volume_update_request=volume_update_request)
+        controller.update_volume(project_id, volume_id, volume_update_request)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
@@ -53,8 +54,8 @@ async def handle_delete_volume(request: Request,
         controller = BlockVolumeController(request,
                                            infra_creator,
                                            params)
-        # result = controller.delete_server(server_id)
-        q.add_job(controller.delete_volume, project_id=project_id, volume_id=volume_id)
+        # q.add_job(controller.delete_volume, project_id=project_id, volume_id=volume_id)
+        controller.delete_volume(project_id, volume_id)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)

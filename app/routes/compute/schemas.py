@@ -27,8 +27,8 @@ class Network(BaseSchema):
 
     @model_validator(mode='after')
     def validate_uuid(self):
-        if not self.uuid and not self.name:
-            raise ValueError("Either network uuid or name must be provided")
+        if not self.uuid and not self.name and not self.port:
+            raise ValueError("Either network uuid or name or port must be provided")
         return self
 
 class BlockDeviceMappingV2(BaseSchema):

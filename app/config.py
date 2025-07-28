@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     workspace_basedir: str = r"D:\work_folder\Projects\IaC_user_workspace"
     openstack_config: dict[str, Any] = {
         "endpoints": {
-            "compute": "http://controller:8774/v2.1/",
+            # "compute": "http://controller:8774/v2.1/",
             "identity": "http://controller:5000/v3/",
             # "image": "http://controller:9292/",
             # "network": "http://controller:9696/",

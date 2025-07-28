@@ -78,9 +78,9 @@ class ExternalFixedIp(BaseSchema):
 
 class ExternalGatewayInfo(BaseSchema):
     network_id: str
-    enable_snat: bool
-    external_fixed_ips: ExternalFixedIp
-    qos_policy_id: str
+    enable_snat: bool | None = None
+    external_fixed_ips: ExternalFixedIp | None = None
+    qos_policy_id: str | None = None
 
 class Router(BaseSchema):
     tenant_id: str | None = None

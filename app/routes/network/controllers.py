@@ -18,7 +18,7 @@ class NetworkController(BaseController):
         network_config = network_create_request.model_dump(exclude_none=True)
         return super().create_resource(resource_type="openstack_networking_network_v2",
                                        resource_name=Utils.normalize_terraform_name(f"openstack_networking_network_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
-                                       resource_value={
+                                       resource_values={
                                             "name": network_config["network"].get("name", None),
                                             "description": network_config["network"].get("description", None),
                                             "shared": network_config["network"].get("shared", None),
@@ -58,7 +58,7 @@ class NetworkController(BaseController):
         subnet_config = subnet_create_request.model_dump(exclude_none=True)
         return super().create_resource(resource_type="openstack_networking_subnet_v2",
                                        resource_name=Utils.normalize_terraform_name(f"openstack_networking_subnet_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
-                                       resource_value={
+                                       resource_values={
                                             "network_id": subnet_config["subnet"].get("network_id", None),
                                             "cidr": subnet_config["subnet"].get("cidr", None),
                                             "prefix_length": subnet_config["subnet"].get("prefix_length", None),
@@ -103,7 +103,7 @@ class NetworkController(BaseController):
         router_config = router_create_request.model_dump(exclude_none=True)
         return super().create_resource(resource_type="openstack_networking_router_v2",
                                        resource_name=Utils.normalize_terraform_name(f"openstack_networking_router_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
-                                       resource_value={
+                                       resource_values={
                                             "tenant_id": router_config["router"].get("tenant_id", None),
                                             "name": router_config["router"].get("name", None),
                                             "description": router_config["router"].get("name", None),
@@ -128,9 +128,9 @@ class NetworkController(BaseController):
                                 router_id: str, 
                                 add_interface_to_router: AddInterfaceRouterRequest):
         config = add_interface_to_router.model_dump(exclude_none=True)
-        return super().create_resource(resource_name="openstack_networking_router_interface_v2",
-                                       resource_type=Utils.normalize_terraform_name(f"openstack_networking_router_interface_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
-                                       resource_value={
+        return super().create_resource(resource_type="openstack_networking_router_interface_v2",
+                                       resource_name=Utils.normalize_terraform_name(f"openstack_networking_router_interface_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
+                                       resource_values={
                                            "router_id": router_id,
                                            "subnet_id": config.get("subnet_id", None),
                                            "port_id": config.get("port_id", None),
@@ -168,7 +168,7 @@ class NetworkController(BaseController):
         port_config = port_create_request.model_dump(exclude_none=True)
         return super().create_resource(resource_type="openstack_networking_port_v2",
                                        resource_name=Utils.normalize_terraform_name(f"openstack_networking_port_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
-                                       resource_value={
+                                       resource_values={
                                             "name": port_config["port"].get("name", None),
                                             "description": port_config["port"].get("description", None),
                                             "network_id": port_config["port"].get("network_id"),

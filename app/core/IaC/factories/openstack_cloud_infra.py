@@ -18,7 +18,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
         self.path_to_tf_workspace = path_to_tf_workspace
         self.tf = Terraform(self.path_to_tf_workspace)  # Đang bị gán cứng dùng Terraform
         # Refresh the infrastructure state - chỉ refresh được attribute, không import được resource khác
-        self._refresh_infrastructure()
+        # self._refresh_infrastructure()
         # initialize the infrastructure dictionary with required providers and resources
         self.infra_dict = {
             "terraform": {
@@ -60,14 +60,14 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             json_output = self.tf.show_json()
             state_data = json.loads(json_output)
             for tf_resource in state_data.get('values', {}).get('root_module', {}).get('resources', []):
-                tf_resource_type = tf_resource['type']
-                tf_resource_name = tf_resource['name']
-                tf_resource_values = self._filter_attributes(tf_resource_type, tf_resource['values'])
+                resource_type = tf_resource['type']
+                resource_name = tf_resource['name']
+                resource_values = self._filter_attributes(resource_type, tf_resource['values'])
                 if tf_resource.get('depends_on'):
-                    tf_resource_values['depends_on'] = tf_resource['depends_on']
-                if tf_resource_type not in self.infra_dict['resource']:
-                    self.infra_dict['resource'][tf_resource_type] = {}
-                self.infra_dict['resource'][tf_resource_type][tf_resource_name] = tf_resource_values
+                    resource_values['depends_on'] = tf_resource['depends_on']
+                if resource_type not in self.infra_dict['resource']:
+                    self.infra_dict['resource'][resource_type] = {}
+                self.infra_dict['resource'][resource_type][resource_name] = resource_values
         except Exception as e:
             raise Exception(f"An unexpected error occurred: {e}")
 
@@ -119,36 +119,36 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                 for nested_element in attributes_dict[key]:
                     if isinstance(nested_element, dict):
                         for nested_key in nested_element.copy():
-                            if nested_key not in RESOURCES[type][key]:
+                            if (not RESOURCES[type][key][0]) or (nested_key not in RESOURCES[type][key][0]):
                                 del nested_element[nested_key]
         return attributes_dict
 
-    def add_resource(self, tf_resource_type, tf_resource_name, tf_resource_values, depends_on=None):
+    def add_resource(self, resource_type, resource_name, resource_values, depends_on=None):
         if depends_on:
-            tf_resource_values['depends_on'] = depends_on
-        if tf_resource_type not in self.infra_dict['resource']:
-            self.infra_dict['resource'][tf_resource_type] = {}
-        self.infra_dict['resource'][tf_resource_type][tf_resource_name] = tf_resource_values
+            resource_values['depends_on'] = depends_on
+        if resource_type not in self.infra_dict['resource']:
+            self.infra_dict['resource'][resource_type] = {}
+        self.infra_dict['resource'][resource_type][resource_name] = resource_values
 
-    def modify_resource(self, tf_resource_type, tf_resource_name, tf_resource_values, depends_on=None):
-        if tf_resource_type not in self.infra_dict['resource'] or tf_resource_name not in self.infra_dict['resource'][tf_resource_type]:
-            raise Exception(f"Resource {tf_resource_name} of type {tf_resource_type} does not exist.")
+    def modify_resource(self, resource_type, resource_name, resource_values, depends_on=None):
+        if resource_type not in self.infra_dict['resource'] or resource_name not in self.infra_dict['resource'][resource_type]:
+            raise Exception(f"Resource {resource_name} of type {resource_type} does not exist.")
         if depends_on:
-            tf_resource_values['depends_on'] = depends_on
-        self.infra_dict['resource'][tf_resource_type][tf_resource_name].update(tf_resource_values)
+            resource_values['depends_on'] = depends_on
+        self.infra_dict['resource'][resource_type][resource_name].update(resource_values)
 
-    def delete_resource(self, tf_resource_type, tf_resource_name):
-        if tf_resource_type not in self.infra_dict['resource'] or tf_resource_name not in self.infra_dict['resource'][tf_resource_type]:
-            raise Exception(f"Resource {tf_resource_name} of type {tf_resource_type} does not exist.")
+    def delete_resource(self, resource_type, resource_name):
+        if resource_type not in self.infra_dict['resource'] or resource_name not in self.infra_dict['resource'][resource_type]:
+            raise Exception(f"Resource {resource_name} of type {resource_type} does not exist.")
         # construct infrastructure graph for deletion
         self._construct_infrastructure_graph_in_reverse()
         try:
-            nodes_to_remove = self.infra_graph.remove_vertext_cascade_reverse(f"{tf_resource_type}.{tf_resource_name}")
+            nodes_to_remove = self.infra_graph.remove_vertext_cascade_reverse(f"{resource_type}.{resource_name}")
             for node in nodes_to_remove:
                 type, name = node.split('.')
                 del self.infra_dict['resource'][type][name]
         except Exception as e:
-            raise Exception(f"An error occurred while deleting resource {tf_resource_name} of type {tf_resource_type}: {e}")
+            raise Exception(f"An error occurred while deleting resource {resource_name} of type {resource_type}: {e}")
 
     def output_infrastructure(self):
         try:

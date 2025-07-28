@@ -21,7 +21,7 @@ class ServerController(BaseController):
         server_config = server_create_request.model_dump(exclude_none=True)
         return super().create_resource(resource_type="openstack_compute_instance_v2",
                                        resource_name=Utils.normalize_terraform_name(f"openstack_compute_instance_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
-                                       resource_value={
+                                       resource_values={
                                             "name": server_config["server"].get("name", None),
                                             "image_id": server_config["server"].get("imageRef", None),
                                             "flavor_id": server_config["server"].get("flavorRef", None),
@@ -73,7 +73,7 @@ class ServerController(BaseController):
         volume_attachment_config = volume_attachment_request.model_dump(exclude_none=True)
         return super().create_resource(resource_type="openstack_compute_volume_attach_v2",
                                        resource_name=Utils.normalize_terraform_name(f"openstack_compute_volume_attach_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
-                                       resource_value={
+                                       resource_values={
                                             "instance_id": server_id,
                                             "volume_id": volume_attachment_config["volumeAttachment"].get("volumeId"),
                                             "device": volume_attachment_config["volumeAttachment"].get("device", None),

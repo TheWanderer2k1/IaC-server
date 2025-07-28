@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from typing import Annotated
 from .controllers import NetworkController
 # from .controllers import ServerActionController
-from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest, NetworkUpdateRequest, SubnetUpdateRequest
+from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest, NetworkUpdateRequest, SubnetUpdateRequest, FloatingIpCreateRequest
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
 
 router = APIRouter()
@@ -183,3 +183,31 @@ async def handle_delete_port(request: Request,
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e}")
     
+
+@router.post("/v2.0/floatingips")
+async def handle_create_floatingip(request: Request,
+                                    floating_ip_create_request: FloatingIpCreateRequest,
+                                    params: CommonQueryParams):
+    try:
+        controller = NetworkController(request, infra_creator, params)
+        # q.add_job(controller.create_router, router_create_request=router_create_request)
+        controller.create_floating_ip(floating_ip_create_request)
+        return JSONResponse(content={
+            "message": "ok"
+        },status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")    
+    
+@router.delete("/v2.0/floatingips/{floatingip_id}")
+async def handle_delete_port(request: Request,
+                               floating_ip_id: str,
+                               params: CommonQueryParams):
+    try:
+        controller = NetworkController(request, infra_creator, params)
+        # q.add_job(controller.delete_port, port_id=port_id)
+        controller.delete_floating_ip(floating_ip_id)
+        return JSONResponse(content={
+                "message": "ok"
+            },status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{e}")

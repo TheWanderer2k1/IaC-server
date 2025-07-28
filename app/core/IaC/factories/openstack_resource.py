@@ -217,5 +217,20 @@ RESOURCES = {
         # },
         "dns_name": {},
         "qos_policy_id": {}
+    },
+    "openstack_networking_floatingip_v2": {
+        "region": {},
+        "description": {},
+        "pool": {},
+        "port_id": {},
+        "tenant_id": {},
+        "address": {},
+        "fixed_ip": {},
+        "subnet_id": {},
+        "subnet_ids": [],
+        "value_specs": {},
+        "tags": {},
+        "dns_name": {},
+        "dns_domain": {}
     }
 }

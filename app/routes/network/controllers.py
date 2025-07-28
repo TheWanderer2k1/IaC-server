@@ -1,5 +1,5 @@
 import json
-from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest, NetworkUpdateRequest, SubnetUpdateRequest
+from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest, NetworkUpdateRequest, SubnetUpdateRequest, FloatingIpCreateRequest
 from app.core.IaC.abstracts.cloud_infra_creator import CloudInfrastructureCreator
 from app.config import settings
 from app.base_controller import BaseController
@@ -194,3 +194,21 @@ class NetworkController(BaseController):
     def delete_port(self, port_id: str):
         return super().delete_resource(resource_type="openstack_networking_port_v2",
                                        resource_id=port_id)
+    
+    def create_floating_ip(self, floating_ip_create_request: FloatingIpCreateRequest):
+        config = floating_ip_create_request.model_dump(exclude_none=True)
+        return super().create_resource(
+            resource_type="openstack_networking_floatingip_v2",
+            resource_name=Utils.normalize_terraform_name(f"openstack_networking_floatingip_v2_{self.location.get('project')}_{self.location.get('username')}_{Utils.generate_random_string(5)}"),
+            resource_values={
+                "description": config["floating_ip"].get("description", None),
+                "pool": config["floating_ip"].get("pool"),
+                "port_id": config["floating_ip"].get("port_id", None),
+                "tenant_id": config["floating_ip"].get("tenant_id", None),
+                "subnet_id": config["floating_ip"].get("subnet_id", None),
+            }
+        )
+
+    def delete_floating_ip(self, floating_ip_id: str):
+        return super().delete_resource(resource_type="openstack_networking_floatingip_v2",
+                                       resource_id=floating_ip_id)

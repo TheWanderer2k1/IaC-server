@@ -147,3 +147,14 @@ class Port(BaseSchema):
 
 class PortCreateRequest(BaseSchema):
     port: Port
+
+class FloatingIp(BaseSchema):
+    description: str | None = None
+    pool: str
+    port_id: str | None = None
+    tenant_id: str | None = None
+    subnet_id: str | None = None
+    # subnet_ids
+
+class FloatingIpCreateRequest(BaseSchema):
+    floating_ip: FloatingIp

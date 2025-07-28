@@ -8,7 +8,7 @@ class Terraform:
     def refresh(self):
         try:
             result = subprocess.run(
-                ["terraform", "apply", "-refresh-only"],
+                ["terraform", "apply", "-refresh-only", "-auto-approve"],
                 cwd=self.path_to_tf_workspace,
                 capture_output=True,
                 text=True,

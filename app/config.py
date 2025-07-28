@@ -1,11 +1,14 @@
 from pydantic_settings import BaseSettings
 from typing import Any
 from huey import RedisHuey
+import redis
 
 class Settings(BaseSettings):
     app_name: str = "IaC server"
     workspace_basedir: str = r"D:\work_folder\Projects\IaC_user_workspace"
     openstack_config: dict[str, Any] = {
+        "region": "RegionOne",
+        "domain": "Default",
         "endpoints": {
             # "compute": "http://controller:8774/v2.1/",
             "identity": "http://controller:5000/v3/",
@@ -14,14 +17,14 @@ class Settings(BaseSettings):
             # "volumev3": ""
         },
         "provider_mapping": {
-            "Epoxy": "",
-            "Dalmatian": "",
+            "Epoxy": "3.0.0",
+            "Dalmatian": "3.0.0",
             "Caracal": "3.0.0",
-            "Bobcat": "",
-            "Antelope": "",
-            "Zed": "",
+            "Bobcat": "3.0.0",
+            "Antelope": "3.0.0",
+            "Zed": "3.0.0",
             "Yoga": "3.0.0",
-            "Train": ""
+            "Train": "3.0.0"
         },
         "db_config": {
             "host": "",
@@ -37,6 +40,7 @@ redis_conn = {
     "port": 6379
 }
 
+redis_client = redis.Redis(**redis_conn)
 huey = RedisHuey('huey-queue', **redis_conn, db=0)
 # nếu dùng huey, phải register task tại compile time nếu ko consumer sẽ không tìm thấy task trong registry
 @huey.task()

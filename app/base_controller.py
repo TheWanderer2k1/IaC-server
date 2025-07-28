@@ -12,12 +12,6 @@ class BaseController:
         self.cloud_infra_creator = cloud_infra_creator
         self.location = location
         self.user_workspace_path = settings.workspace_basedir + f"/{location.get('domain')}/{location.get('project')}/{location.get('username')}"
-        # init the user environment if not exists
-        dir_path = Path(self.user_workspace_path)
-        if not dir_path.exists():
-            dir_path.mkdir(parents=True, exist_ok=True)
-            # tf init here
-            # 
         self.cloud_infra = self.cloud_infra_creator.create_infrastructure(
             path_to_tf_workspace=self.user_workspace_path,
             provider_version=settings.openstack_config.get("provider_mapping", "").get("Yoga", ""),

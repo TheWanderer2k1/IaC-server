@@ -5,3 +5,4 @@ pydot
 pydantic-settings
 rq
 huey
+redis

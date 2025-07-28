@@ -1,6 +1,6 @@
-import subprocess
 import json
 import pydot
+from pathlib import Path
 from app.config import settings
 from app.core.IaC.lib.graph import DirectedAcyclicGraph
 from .openstack_resource import RESOURCES
@@ -17,8 +17,6 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                     tenant_name):
         self.path_to_tf_workspace = path_to_tf_workspace
         self.tf = Terraform(self.path_to_tf_workspace)  # Đang bị gán cứng dùng Terraform
-        # Refresh the infrastructure state - chỉ refresh được attribute, không import được resource khác
-        # self._refresh_infrastructure()
         # initialize the infrastructure dictionary with required providers and resources
         self.infra_dict = {
             "terraform": {
@@ -42,6 +40,16 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             },
             "resource": {}
         }
+        # init the user environment if not exists
+        dir_path = Path(self.path_to_tf_workspace)
+        dir_path.mkdir(parents=True, exist_ok=True)
+        # check if IaC config file is exist
+        file = Path(f"{self.path_to_tf_workspace}/main.tf.json")
+        if not file.is_file():
+            self.output_infrastructure()
+            result = self.tf.init()
+            print(result)
+        self._refresh_infrastructure()
         self.infra_graph = DirectedAcyclicGraph()
         self._construct_infrastructure_dict()
         # self._construct_infrastructure_graph_in_reverse()
@@ -153,10 +161,10 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
     def output_infrastructure(self):
         try:
             # remove all null key-value
-            self.infra_dict = Utils.remove_null_values(self.infra_dict)
+            final_infra_dict = Utils.remove_null_values(self.infra_dict)
             # generate config file
             with open(f"{self.path_to_tf_workspace}/main.tf.json", "w") as f:
-                json.dump(self.infra_dict, f, indent=2)
+                json.dump(final_infra_dict, f, indent=2)
             # # debug
             # print(json.dumps(self.infra_dict, indent=2))
         except Exception as e:
@@ -164,9 +172,6 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
     
     def apply_infrastructure(self):
         try:
-            # tf init
-            result = self.tf.init()
-            print(result)
             # tf apply
             result = self.tf.apply()
             print(result)

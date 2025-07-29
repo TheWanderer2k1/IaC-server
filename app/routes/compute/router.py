@@ -5,6 +5,7 @@ from .controllers import ServerController
 # from .controllers import ServerActionController
 from .schemas import ServerCreateRequest, VolumeAttachmentRequest, ServerUpdateRequest
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
+from app.config import logger
 
 router = APIRouter()
 CommonQueryParams = Annotated[dict, Depends(common_query_params)]
@@ -23,7 +24,8 @@ async def handle_create_server(request: Request,
             "message": "ok"
         },status_code=200)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"{e}")
+        logger.error(f"Create server failed: {e}")
+        raise HTTPException(status_code=500, detail="Create server failed!")
     
 @router.put("/servers/{server_id}")
 async def handle_update_server(request: Request,
@@ -39,7 +41,8 @@ async def handle_update_server(request: Request,
             "message": "ok"
         },status_code=200)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"{e}")
+        logger.error(f"Update server failed: {e}")
+        raise HTTPException(status_code=500, detail="Update server failed!")
     
 @router.delete("/servers/{server_id}")
 async def handle_delete_server(request: Request,
@@ -53,7 +56,8 @@ async def handle_delete_server(request: Request,
             "message": "ok"
         },status_code=200)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"{e}")
+        logger.error(f"Delete server failed: {e}")
+        raise HTTPException(status_code=500, detail="Delete server failed!")
     
 @router.post("/servers/{server_id}/os-volume_attachments")
 async def handle_attach_volume(request: Request,
@@ -68,7 +72,8 @@ async def handle_attach_volume(request: Request,
             "message": "ok"
         },status_code=200)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"{e}")
+        logger.error(f"Attach volume failed: {e}")
+        raise HTTPException(status_code=500, detail="Attach volume failed!")
 
 @router.delete("/servers/{server_id}/os-volume_attachments/{volume_id}")
 async def handle_detach_volume(request: Request,
@@ -83,4 +88,5 @@ async def handle_detach_volume(request: Request,
                 "message": "ok"
             },status_code=200)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"{e}")
+        logger.error(f"Detach volume failed: {e}")
+        raise HTTPException(status_code=500, detail="Detach volume failed!")

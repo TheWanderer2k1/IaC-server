@@ -1,7 +1,9 @@
 from pydantic_settings import BaseSettings
 from typing import Any
 from huey import RedisHuey
+from pathlib import Path
 import redis
+import logging
 
 class Settings(BaseSettings):
     app_name: str = "IaC server"
@@ -35,16 +37,32 @@ class Settings(BaseSettings):
         }
     }
 
+# settings config
 settings = Settings()
+
+# redis config
 redis_conn = {
     "host": "192.168.239.155",
     "port": 6379
 }
-
 redis_client = redis.Redis(**redis_conn)
+
+# queue config
 huey = RedisHuey('huey-queue', **redis_conn, db=0)
 # nếu dùng huey, phải register task tại compile time nếu ko consumer sẽ không tìm thấy task trong registry
 @huey.task()
 def run_job(func, **kwargs):
     return func(**kwargs)
+
+# log config
+logger = logging.getLogger("logger")
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+log_file = Path(r'./log/app.error')
+log_file.parent.mkdir(parents=True, exist_ok=True)
+if not log_file.exists():
+    log_file.write_text('')
+error_handler = logging.FileHandler(log_file.as_posix())
+error_handler.setLevel(logging.ERROR)
+error_handler.setFormatter(formatter)
+logger.addHandler(error_handler)
     

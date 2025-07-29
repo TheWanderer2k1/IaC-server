@@ -23,7 +23,6 @@ class OpenStackCloudInfrastructureCreator(CloudInfrastructureCreator):
                                                 tenant_name=kwargs["tenant_name"],
                                                 endpoint_overrides=kwargs["endpoint_overrides"])
         except Exception as e:
-            print(f"An error occurred while creating OpenStack cloud infrastructure: {e}")
-            raise e
+            raise Exception(f"An error occurred while creating OpenStack cloud infrastructure: {e}")
 
 oc_creator = OpenStackCloudInfrastructureCreator()

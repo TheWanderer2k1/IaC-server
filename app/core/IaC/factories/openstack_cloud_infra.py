@@ -174,11 +174,25 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             result = self.tf.apply()
             print(result)
         except Exception as e:
-            raise Exception(f"An unexpected error occurred: {e}")
+            raise Exception(f"An unexpected error occurred when apply: {e}")
     
     def destroy_infrastructure(self):
         try:
             result = self.tf.destroy()
             print(result)
         except Exception as e:
-            raise Exception(f"An unexpected error occurred: {e}")
+            raise Exception(f"An unexpected error occurred when destroy: {e}")
+        
+    def import_resource(self, resource_type, resource_name, resource_id):
+        try:
+            # add resource placeholder in config file
+            if resource_type not in self.infra_dict['resource']:
+                self.infra_dict['resource'][resource_type] = {}
+            self.infra_dict['resource'][resource_type][resource_name] = {}
+            # generate config file
+            with open(f"{self.path_to_tf_workspace}/main.tf.json", "w") as f:
+                json.dump(self.infra_dict, f, indent=2)
+            result = self.tf.import_resource(f"{resource_type}.{resource_name}", resource_id)
+            print(result)
+        except Exception as e:
+            raise Exception(f"An unexpected error occurred when import: {e}")

@@ -40,3 +40,8 @@ class ICloudInfrastructure(ABC):
     def apply_infrastructure(self):
         """Apply the current state of the infrastructure."""
         pass
+
+    @abstractmethod
+    def import_resource(self, resource_type, resource_name, resource_id):
+        """Import existing resource into state"""
+        pass

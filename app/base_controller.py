@@ -80,3 +80,10 @@ class BaseController:
             return True
         except Exception as e:
             raise Exception(e)
+        
+    def import_resource(self, resource_type: str, resource_name: str, resource_id: str):
+        try:
+            self.cloud_infra.import_resource(resource_type, resource_name, resource_id)
+            return True
+        except Exception as e:
+            raise Exception(e)

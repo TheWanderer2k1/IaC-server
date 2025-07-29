@@ -5,6 +5,7 @@ from app.routes.compute.router import router as ComputeRouter
 from app.routes.block.router import router as BlockRouter
 from app.routes.network.router import router as NetworkRouter
 from app.routes.infra.router import router as InfraRouter
+from app.routes.import_infra.router import router as ImportRouter
 
 app = FastAPI()
 app.add_middleware(AuthMiddleware)
@@ -13,3 +14,4 @@ app.include_router(ComputeRouter)
 app.include_router(BlockRouter)
 app.include_router(NetworkRouter)
 app.include_router(InfraRouter)
+app.include_router(ImportRouter)

@@ -94,3 +94,18 @@ class Terraform:
             raise Exception(f"tf destroy failed: {e.returncode} {e.stderr}")
         except Exception as e:
             raise Exception(f"{e}")
+        
+    def import_resource(self, resource_name, resource_id):
+        try:
+            result = subprocess.run(
+                ["terraform", "import", resource_name, resource_id],
+                cwd=self.path_to_tf_workspace,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return result.stdout
+        except subprocess.CalledProcessError as e:
+            raise Exception(f"tf import failed: {e.returncode} {e.stderr}")
+        except Exception as e:
+            raise Exception(f"{e}")

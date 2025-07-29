@@ -41,7 +41,7 @@ async def handle_update_server(request: Request,
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e}")
     
-@router.delete("/servers/delete")
+@router.delete("/servers/{server_id}")
 async def handle_delete_server(request: Request,
                                server_id: str,
                                params: CommonQueryParams):

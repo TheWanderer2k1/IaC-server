@@ -48,8 +48,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
         # file = Path(f"{self.path_to_tf_workspace}/main.tf.json")
         # if not file.is_file():
         self.output_infrastructure()
-        result = self.tf.init()
-        print(result)
+        self.tf.init()
         self._refresh_infrastructure()
         self.infra_graph = DirectedAcyclicGraph()
         self._construct_infrastructure_dict()

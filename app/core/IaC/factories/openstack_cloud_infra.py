@@ -53,13 +53,11 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
         self.infra_graph = DirectedAcyclicGraph()
         self._construct_infrastructure_dict()
         # self._construct_infrastructure_graph_in_reverse()
-        # print(json.dumps(self.infra_dict, indent=2))
-        # print(self.infra_graph)
     
     def _refresh_infrastructure(self):
         try:
             result = self.tf.refresh()
-            print(result)
+            # print(result)
         except Exception as e:
             raise Exception(f"An unexpected error occurred: {e}")
 

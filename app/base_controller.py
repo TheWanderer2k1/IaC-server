@@ -12,13 +12,15 @@ class BaseController:
         self.cloud_infra_creator = cloud_infra_creator
         self.location = location
         self.user_workspace_path = settings.workspace_basedir + f"/{location.get('domain')}/{location.get('project')}/{location.get('username')}"
+        endpoint_overrides = settings.openstack_config.get("endpoints", {})
         self.cloud_infra = self.cloud_infra_creator.create_infrastructure(
             path_to_tf_workspace=self.user_workspace_path,
             provider_version=settings.openstack_config.get("provider_mapping", "").get("Yoga", ""),
-            auth_url=f"{settings.openstack_config.get('endpoints', '').get('identity', '')}",
-            region=f"{location.get('region')}",
+            auth_url=settings.openstack_config.get('auth_url', ''),
+            region=location.get('region'),
             token=request.headers.get("X-Subject-Token"),
-            tenant_name=f"{location.get('project')}"
+            tenant_name=location.get('project'),
+            endpoint_overrides=endpoint_overrides
         )
 
     def create_resource(self, resource_type: str, resource_name: str, resource_values: dict[str, str]):

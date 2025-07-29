@@ -198,7 +198,7 @@ async def handle_create_floatingip(request: Request,
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{e}")    
     
-@router.delete("/v2.0/floatingips/{floatingip_id}")
+@router.delete("/v2.0/floatingips/{floating_ip_id}")
 async def handle_delete_port(request: Request,
                                floating_ip_id: str,
                                params: CommonQueryParams):

@@ -20,7 +20,8 @@ class OpenStackCloudInfrastructureCreator(CloudInfrastructureCreator):
                                                 auth_url=kwargs["auth_url"],
                                                 region=kwargs["region"],
                                                 token=kwargs["token"],  # Use token for authentication
-                                                tenant_name=kwargs["tenant_name"])
+                                                tenant_name=kwargs["tenant_name"],
+                                                endpoint_overrides=kwargs["endpoint_overrides"])
         except Exception as e:
             print(f"An error occurred while creating OpenStack cloud infrastructure: {e}")
             raise e

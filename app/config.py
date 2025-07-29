@@ -7,10 +7,11 @@ class Settings(BaseSettings):
     app_name: str = "IaC server"
     workspace_basedir: str = r"D:\work_folder\Projects\IaC_user_workspace"
     openstack_config: dict[str, Any] = {
+        "auth_url": "http://controller:5000/v3/",
         "region": "RegionOne",
         "domain": "Default",
         "endpoints": {
-            # "compute": "http://controller:8774/v2.1/",
+            "compute": "http://controller:8774/v2.1/",
             "identity": "http://controller:5000/v3/",
             # "image": "http://controller:9292/",
             # "network": "http://controller:9696/",

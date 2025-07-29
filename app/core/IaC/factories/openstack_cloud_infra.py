@@ -14,7 +14,8 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                     auth_url, 
                     region,
                     token,  # Use token for authentication
-                    tenant_name):
+                    tenant_name,
+                    endpoint_overrides):
         self.path_to_tf_workspace = path_to_tf_workspace
         self.tf = Terraform(self.path_to_tf_workspace)  # Đang bị gán cứng dùng Terraform
         # initialize the infrastructure dictionary with required providers and resources
@@ -32,14 +33,14 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                     "auth_url": auth_url,
                     "region": region,
                     "token": token,  # Use token for authentication
-                    "tenant_name": tenant_name,
-                    "endpoint_overrides": {
-                        **settings.openstack_config.get("endpoints", "")
-                    }
+                    "tenant_name": tenant_name
                 }
             },
             "resource": {}
         }
+        # endpoint overrides
+        if endpoint_overrides:
+            self.infra_dict["provider"]["openstack"]["endpoint_overrides"] = endpoint_overrides
         # init the user environment if not exists
         dir_path = Path(self.path_to_tf_workspace)
         dir_path.mkdir(parents=True, exist_ok=True)

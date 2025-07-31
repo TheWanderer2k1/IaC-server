@@ -1,6 +1,6 @@
 import json
 import aiohttp
-from .schemas import ServerCreateRequest, ServerUpdateRequest, ServerCreateImageRequest, VolumeAttachmentRequest
+from .schemas import ServerCreateRequest, ServerUpdateRequest, ServerCreateImageRequest, VolumeAttachmentRequest, RemoteConsoleRequest
 from app.core.IaC.abstracts.cloud_infra_creator import CloudInfrastructureCreator
 from app.config import settings
 from app.base_controller import BaseController
@@ -67,6 +67,60 @@ class ServerController(BaseController):
     def delete_server(self, server_id: str):
         return super().delete_resource(resource_type="openstack_compute_instance_v2", 
                                        resource_id=server_id)
+    
+    async def get_console(self, server_id: str, remote_console_request: RemoteConsoleRequest):
+        try:
+            config = remote_console_request.model_dump(exclude_none=True)
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{settings.openstack_config.get('endpoints', {}).get('compute', '')}servers/{server_id}/remote-consoles",
+                    headers = {
+                        "X-Auth-Token": self.token
+                    },
+                    json = {
+                        "remote-console": {
+                            "protocol": config.get("remote_console", {}).get("protocol"),
+                            "type": config.get("remote_console", {}).get("console_type")
+                        }
+                    }
+                ) as resp:
+                    try:
+                        response_data = await resp.json()
+                    except aiohttp.ContentTypeError:
+                        response_data = await resp.text()
+                    except json.decoder.JSONDecodeError:
+                        response_data = await resp.text()
+                    if resp.status != 200:
+                        raise Exception(f"Failed to get console: {response_data}")
+                    return response_data
+        except Exception as e:
+            raise Exception(e)
+
+    async def get_novnc_console(self, server_id: str):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{settings.openstack_config.get('endpoints', {}).get('compute', '')}servers/{server_id}/action",
+                    headers = {
+                        "X-Auth-Token": self.token
+                    },
+                    json = {
+                        "os-getVNCConsole": {
+                            "type": "novnc",
+                        }
+                    }
+                ) as resp:
+                    try:
+                        response_data = await resp.json()
+                    except aiohttp.ContentTypeError:
+                        response_data = await resp.text()
+                    except json.decoder.JSONDecodeError:
+                        response_data = await resp.text()
+                    if resp.status != 200:
+                        raise Exception(f"Failed to get console: {response_data}")
+                    return response_data
+        except Exception as e:
+            raise Exception(e)
         
     def attach_volume(self,
                       server_id: str,
@@ -110,7 +164,7 @@ class ServerController(BaseController):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    f"{settings.openstack_config.get('endpoints', {}).get('compute', '')}flavors", 
+                    f"{settings.openstack_config.get('endpoints', {}).get('compute', '')}flavors/detail", 
                     headers={"X-Auth-Token": self.token}                       
                 ) as resp:
                     try:

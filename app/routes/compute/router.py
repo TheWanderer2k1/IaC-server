@@ -100,3 +100,16 @@ async def handle_get_flavors(request: Request, params: CommonQueryParams):
     except Exception as e:
         logger.error(f"Get flavors failed: {e}")
         raise HTTPException(status_code=500, detail="Get flavors failed!")
+    
+@router.get("/servers/{server_id}/novnc-console")
+async def handle_get_novnc_console(request: Request,
+                                      server_id: str,
+                                      params: CommonQueryParams):
+    try:
+        controller = ServerController(request, infra_creator, params)
+        # q.add_job(controller.get_console, server_id=server_id)
+        console = await controller.get_novnc_console(server_id)
+        return JSONResponse(content=console, status_code=200)
+    except Exception as e:
+        logger.error(f"Get noVNC console failed: {e}")
+        raise HTTPException(status_code=500, detail="Get noVNC console failed!")

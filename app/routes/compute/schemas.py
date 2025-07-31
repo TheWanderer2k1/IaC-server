@@ -138,3 +138,10 @@ class VolumeAttachment(BaseSchema):
 
 class VolumeAttachmentRequest(BaseSchema):
     volumeAttachment: VolumeAttachment
+
+class RemoteConsole(BaseSchema):
+    protocol: str
+    console_type: str = Field(alias="type")
+
+class RemoteConsoleRequest(BaseSchema):
+    remote_console: RemoteConsole

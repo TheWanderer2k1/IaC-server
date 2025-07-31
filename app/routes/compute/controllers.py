@@ -1,4 +1,5 @@
 import json
+import aiohttp
 from .schemas import ServerCreateRequest, ServerUpdateRequest, ServerCreateImageRequest, VolumeAttachmentRequest
 from app.core.IaC.abstracts.cloud_infra_creator import CloudInfrastructureCreator
 from app.config import settings
@@ -102,6 +103,25 @@ class ServerController(BaseController):
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
             return True
+        except Exception as e:
+            raise Exception(e)
+        
+    async def get_flavors(self):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"{settings.openstack_config.get('endpoints', {}).get('compute', '')}flavors", 
+                    headers={"X-Auth-Token": self.token}                       
+                ) as resp:
+                    try:
+                        response_data = await resp.json()
+                    except aiohttp.ContentTypeError:
+                        response_data = await resp.text()
+                    except json.decoder.JSONDecodeError:
+                        response_data = await resp.text()
+                    if resp.status != 200:
+                        raise Exception(f"Failed to get flavors: {response_data}")
+                    return response_data
         except Exception as e:
             raise Exception(e)
 

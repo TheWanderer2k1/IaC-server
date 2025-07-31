@@ -90,3 +90,13 @@ async def handle_detach_volume(request: Request,
     except Exception as e:
         logger.error(f"Detach volume failed: {e}")
         raise HTTPException(status_code=500, detail="Detach volume failed!")
+    
+@router.get("/flavors")
+async def handle_get_flavors(request: Request, params: CommonQueryParams):
+    try:
+        controller = ServerController(request, infra_creator, params)
+        flavors = await controller.get_flavors()
+        return JSONResponse(content=flavors, status_code=200)
+    except Exception as e:
+        logger.error(f"Get flavors failed: {e}")
+        raise HTTPException(status_code=500, detail="Get flavors failed!")

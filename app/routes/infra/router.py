@@ -17,11 +17,9 @@ async def handle_provision_infra(request: Request,
                                  params: CommonQueryParams):
     try:
         controller = InfraController(request, infra_creator, params)
-        controller.provision_infra_preset1(infra_preset1_request)
+        state = controller.provision_infra_preset1(infra_preset1_request)
         # q.add_job(controller.create_server, server_create_request=server_create_request)
-        return JSONResponse(content={
-            "message": "ok"
-        },status_code=200)
+        return JSONResponse(content=state,status_code=200)
     except Exception as e:
         logger.error(f"Provision infra failed: {e}")
         raise HTTPException(status_code=500, detail="Provision infra failed!")

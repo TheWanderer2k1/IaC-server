@@ -3,6 +3,7 @@ from app.base_controller import BaseController
 from fastapi import Request
 from .schemas import InfraPreset1Request
 from app.utils.utils import Utils
+import json
 
 class InfraController(BaseController):
     def __init__(self, 
@@ -112,17 +113,33 @@ class InfraController(BaseController):
                     ]
                 }
             )
-            # add floating ip
-            self.cloud_infra.add_resource(
-                resource_type="openstack_networking_floatingip_v2",
-                resource_name=floating_ip_name,
-                resource_values={
-                    "pool": "provider",
-                    "port_id": "${openstack_networking_port_v2." + port_name + ".id}"
-                }
-            )
+            # # add floating ip
+            # self.cloud_infra.add_resource(
+            #     resource_type="openstack_networking_floatingip_v2",
+            #     resource_name=floating_ip_name,
+            #     resource_values={
+            #         "pool": "provider",
+            #         "port_id": "${openstack_networking_port_v2." + port_name + ".id}"
+            #     }
+            # )
             # apply
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
+            # read from terrfarm state
+            with open(f"{self.user_workspace_path}/terraform.tfstate", 'r') as f:
+                state = json.load(f)
+            created_resources = []
+            for resource in state.get('resources', []):
+                if resource['name'] == network_name or \
+                   resource['name'] == subnet_name or \
+                   resource['name'] == router_name or \
+                   resource['name'] == router_interface_name or \
+                   resource['name'] == block_vol_name or \
+                   resource['name'] == port_name or \
+                   resource['name'] == server_name:
+                #    resource['name'] == floating_ip_name:
+                    created_resources.append(resource)
+            # return the created resources
+            return created_resources
         except Exception as e:
             raise Exception(e)

@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         "endpoints": {
             "compute": "http://controller:8774/v2.1/",
             "identity": "http://controller:5000/v3/",
-            # "image": "http://controller:9292/",
+            "image": "http://controller:9292/v2/",
             # "network": "http://controller:9696/",
             # "volumev3": ""
         },

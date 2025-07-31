@@ -50,7 +50,7 @@ class InfraController(BaseController):
                 resource_values={
                     "name": f"router_{Utils.generate_random_string(5)}",
                     "admin_state_up": True,
-                    "external_network_id": config.get("external_network_id")
+                    "external_network_id": "10f06942-af56-4bfc-a76a-8ea288625e84"
                 }
             )
             # add router interface

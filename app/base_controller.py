@@ -3,6 +3,7 @@ from fastapi import Request
 from .config import settings
 from pathlib import Path
 import json
+from app.config import redis_client
 
 class BaseController:
     def __init__(self,
@@ -13,12 +14,18 @@ class BaseController:
         self.location = location
         self.user_workspace_path = settings.workspace_basedir + f"/{location.get('domain')}/{location.get('project')}/{location.get('username')}"
         endpoint_overrides = settings.openstack_config.get("endpoints", {})
+        self.token = request.headers.get("X-Subject-Token")
+        if endpoint_overrides.get("volumev3"):
+            user_session = redis_client.get(self.token)
+            session_data = json.loads(user_session)
+            project_id = session_data["token"]["project"]["id"]
+            endpoint_overrides["volumev3"] = f"{endpoint_overrides['volumev3']}{project_id}/"
         self.cloud_infra = self.cloud_infra_creator.create_infrastructure(
             path_to_tf_workspace=self.user_workspace_path,
             provider_version=settings.openstack_config.get("provider_mapping", "").get("Yoga", ""),
             auth_url=settings.openstack_config.get('auth_url', ''),
             region=location.get('region'),
-            token=request.headers.get("X-Subject-Token"),
+            token=self.token,
             tenant_name=location.get('project'),
             endpoint_overrides=endpoint_overrides
         )

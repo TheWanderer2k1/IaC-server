@@ -6,6 +6,7 @@ from app.base_controller import BaseController
 from fastapi import Request
 from pathlib import Path
 from app.utils.utils import Utils
+from app.exceptions.controller_exception import ControllerException
 
 class ImageController(BaseController):
     def __init__(self, 
@@ -31,4 +32,4 @@ class ImageController(BaseController):
                         raise Exception(f"Failed to get images: {response_data}")
                     return response_data
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"An error occurred while getting images: {e}")

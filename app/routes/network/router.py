@@ -5,7 +5,6 @@ from .controllers import NetworkController
 # from .controllers import ServerActionController
 from .schemas import NetworkCreateRequest, SubnetCreateRequest, RouterCreateRequest, AddInterfaceRouterRequest, PortCreateRequest, NetworkUpdateRequest, SubnetUpdateRequest, FloatingIpCreateRequest
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
-from app.config import logger
 
 router = APIRouter()
 CommonQueryParams = Annotated[dict, Depends(common_query_params)]
@@ -23,8 +22,7 @@ async def handle_create_network(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Create network failed {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Create network failed!")
     
 @router.put("/v2.0/networks/{network_id}")
@@ -39,8 +37,7 @@ async def handle_update_network(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Update network failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Update network failed!")
     
 @router.delete("/v2.0/networks/{network_id}")
@@ -54,8 +51,7 @@ async def handle_delete_network(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Delete network failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Delete network failed!")
     
 @router.post("/v2.0/subnets")
@@ -69,8 +65,7 @@ async def handle_create_subnet(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Create subnet failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Create subnet failed!")
 
 @router.put("/v2.0/subnets/{subnet_id}")
@@ -85,8 +80,7 @@ async def handle_update_subnet(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Update subnet failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Update subnet failed!")
 
 @router.delete("/v2.0/subnets/{subnet_id}")
@@ -100,8 +94,7 @@ async def handle_delete_subnet(request: Request,
         return JSONResponse(content={
                 "message": "ok"
             },status_code=200)
-    except Exception as e:
-        logger.error(f"Delete subnet failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Delete subnet failed!")
     
 @router.post("/v2.0/routers")
@@ -115,8 +108,7 @@ async def handle_create_router(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Create router failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Create router failed!")
     
 @router.delete("/v2.0/routers/{router_id}")
@@ -130,8 +122,7 @@ async def handle_delete_router(request: Request,
         return JSONResponse(content={
                 "message": "ok"
             },status_code=200)
-    except Exception as e:
-        logger.error(f"Delete router failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Delete router failed!")
     
 @router.put("/v2.0/routers/{router_id}/add_router_interface")
@@ -146,8 +137,7 @@ async def handle_add_router_interface(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Add interface to router failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Add interface to router failed!")
     
 @router.put("/v2.0/routers/{router_id}/remove_router_interface")
@@ -162,8 +152,7 @@ async def handle_remove_router_interface(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Remove router interface failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Remove router interface failed!")
     
 @router.post("/v2.0/ports")
@@ -177,8 +166,7 @@ async def handle_create_port(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Create port failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Create port failed!")
     
 @router.delete("/v2.0/ports/{port_id}")
@@ -192,8 +180,7 @@ async def handle_delete_port(request: Request,
         return JSONResponse(content={
                 "message": "ok"
             },status_code=200)
-    except Exception as e:
-        logger.error(f"Delete port failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Delete port failed!")
     
 
@@ -208,8 +195,7 @@ async def handle_create_floatingip(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Create floating ip failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Create floating ip failed!")    
     
 @router.delete("/v2.0/floatingips/{floating_ip_id}")
@@ -223,6 +209,5 @@ async def handle_delete_floatingip(request: Request,
         return JSONResponse(content={
                 "message": "ok"
             },status_code=200)
-    except Exception as e:
-        logger.error(f"Delete floating ip failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Delete floating ip failed!")

@@ -7,6 +7,7 @@ from app.base_controller import BaseController
 from fastapi import Request
 from pathlib import Path
 from app.utils.utils import Utils
+from app.exceptions.controller_exception import ControllerException
 
 class ServerController(BaseController):
     def __init__(self, 
@@ -94,7 +95,7 @@ class ServerController(BaseController):
                         raise Exception(f"Failed to get console: {response_data}")
                     return response_data
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"Failed to get console for server {server_id}: {e}")
 
     async def get_novnc_console(self, server_id: str):
         try:
@@ -120,7 +121,7 @@ class ServerController(BaseController):
                         raise Exception(f"Failed to get console: {response_data}")
                     return response_data
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"Failed to get noVNC console for server {server_id}: {e}")
         
     def attach_volume(self,
                       server_id: str,
@@ -158,7 +159,7 @@ class ServerController(BaseController):
             self.cloud_infra.apply_infrastructure()
             return True
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"Failed to detach volume {volume_id} from server {server_id}: {e}")
         
     async def get_flavors(self):
         try:
@@ -177,7 +178,7 @@ class ServerController(BaseController):
                         raise Exception(f"Failed to get flavors: {response_data}")
                     return response_data
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"Failed to get flavors: {e}")
 
     def add_security_group(self, server_id: str, addSecurityGroup: dict[str, str]):
         pass

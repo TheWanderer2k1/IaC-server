@@ -4,7 +4,6 @@ from typing import Annotated
 from .controllers import InfraController
 from .schemas import InfraPreset1Request
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
-from app.config import logger
 
 router = APIRouter()
 CommonQueryParams = Annotated[dict, Depends(common_query_params)]
@@ -20,6 +19,5 @@ async def handle_provision_infra(request: Request,
         state = controller.provision_infra_preset1(infra_preset1_request)
         # q.add_job(controller.create_server, server_create_request=server_create_request)
         return JSONResponse(content=state,status_code=200)
-    except Exception as e:
-        logger.error(f"Provision infra failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Provision infra failed!")

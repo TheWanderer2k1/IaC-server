@@ -6,6 +6,7 @@ from app.base_controller import BaseController
 from fastapi import Request
 from pathlib import Path
 from app.utils.utils import Utils
+from app.exceptions.controller_exception import ControllerException
 
 class NetworkController(BaseController):
     def __init__(self, 
@@ -162,7 +163,7 @@ class NetworkController(BaseController):
             self.cloud_infra.apply_infrastructure()
             return True
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"An error occurred while removing interface from router: {e}")
         
     def create_port(self, port_create_request: PortCreateRequest):
         port_config = port_create_request.model_dump(exclude_none=True)

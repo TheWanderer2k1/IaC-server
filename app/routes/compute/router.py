@@ -5,7 +5,6 @@ from .controllers import ServerController
 # from .controllers import ServerActionController
 from .schemas import ServerCreateRequest, VolumeAttachmentRequest, ServerUpdateRequest
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
-from app.config import logger
 
 router = APIRouter()
 CommonQueryParams = Annotated[dict, Depends(common_query_params)]
@@ -23,8 +22,7 @@ async def handle_create_server(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Create server failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Create server failed!")
     
 @router.put("/servers/{server_id}")
@@ -40,8 +38,7 @@ async def handle_update_server(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Update server failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Update server failed!")
     
 @router.delete("/servers/{server_id}")
@@ -55,8 +52,7 @@ async def handle_delete_server(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Delete server failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Delete server failed!")
     
 @router.post("/servers/{server_id}/os-volume_attachments")
@@ -71,8 +67,7 @@ async def handle_attach_volume(request: Request,
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
-    except Exception as e:
-        logger.error(f"Attach volume failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Attach volume failed!")
 
 @router.delete("/servers/{server_id}/os-volume_attachments/{volume_id}")
@@ -87,8 +82,7 @@ async def handle_detach_volume(request: Request,
         return JSONResponse(content={
                 "message": "ok"
             },status_code=200)
-    except Exception as e:
-        logger.error(f"Detach volume failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Detach volume failed!")
     
 @router.get("/flavors")
@@ -97,8 +91,7 @@ async def handle_get_flavors(request: Request, params: CommonQueryParams):
         controller = ServerController(request, infra_creator, params)
         flavors = await controller.get_flavors()
         return JSONResponse(content=flavors, status_code=200)
-    except Exception as e:
-        logger.error(f"Get flavors failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Get flavors failed!")
     
 @router.get("/servers/{server_id}/novnc-console")
@@ -110,6 +103,5 @@ async def handle_get_novnc_console(request: Request,
         # q.add_job(controller.get_console, server_id=server_id)
         console = await controller.get_novnc_console(server_id)
         return JSONResponse(content=console, status_code=200)
-    except Exception as e:
-        logger.error(f"Get noVNC console failed: {e}")
+    except Exception:
         raise HTTPException(status_code=500, detail="Get noVNC console failed!")

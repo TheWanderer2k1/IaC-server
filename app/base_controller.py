@@ -4,6 +4,7 @@ from .config import settings
 from pathlib import Path
 import json
 from app.config import redis_client
+from app.exceptions.controller_exception import ControllerException
 
 class BaseController:
     def __init__(self,
@@ -41,7 +42,7 @@ class BaseController:
             self.cloud_infra.apply_infrastructure()
             return True
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"Failed to create resource {resource_name} of type {resource_type}: {e}")
         
     def modify_resource(self, resource_type: str, resource_id: str, resource_values: dict[str, str]):
         try:
@@ -64,7 +65,7 @@ class BaseController:
             self.cloud_infra.apply_infrastructure()
             return True
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"Failed to modify resource {resource_id} of type {resource_type}: {e}")
 
     def delete_resource(self, resource_type: str, resource_id: str):
         try:
@@ -86,11 +87,11 @@ class BaseController:
             self.cloud_infra.apply_infrastructure()
             return True
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"Failed to delete resource {resource_id} of type {resource_type}: {e}")
         
     def import_resource(self, resource_type: str, resource_name: str, resource_id: str):
         try:
             self.cloud_infra.import_resource(resource_type, resource_name, resource_id)
             return True
         except Exception as e:
-            raise Exception(e)
+            raise ControllerException(f"Failed to import resource {resource_name} of type {resource_type}: {e}")

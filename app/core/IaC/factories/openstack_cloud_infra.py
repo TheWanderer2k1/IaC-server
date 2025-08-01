@@ -8,6 +8,8 @@ from app.core.IaC.interfaces.cloud_infra_interface import ICloudInfrastructure
 from app.core.IaC.lib.Terraform.tf import Terraform # chỗ này nên dùng DI và interface để có thể mở rộng sang tool khác (OpenTofu)
 from app.utils.utils import Utils
 from app.database.factories.mongo_datastore_creator import mongo_creator
+from app.exceptions.datastore_exception import DatastoreOperationException
+from app.exceptions.infra_exception import InfraOperationException
 
 class OpenStackCloudInfrastructure(ICloudInfrastructure):
     def __init__(self, path_to_tf_workspace, 
@@ -61,7 +63,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             result = self.tf.refresh()
             # print(result)
         except Exception as e:
-            raise Exception(f"An unexpected error occurred: {e}")
+            raise InfraOperationException(f"An unexpected error occurred when refreshing: {e}")
 
     def _construct_infrastructure_dict(self):
         try:
@@ -77,7 +79,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                     self.infra_dict['resource'][resource_type] = {}
                 self.infra_dict['resource'][resource_type][resource_name] = resource_values
         except Exception as e:
-            raise Exception(f"An unexpected error occurred: {e}")
+            raise InfraOperationException(f"An unexpected error occurred when constructing infra dict: {e}")
 
     def _construct_infrastructure_graph(self):
         try:
@@ -92,7 +94,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                 to_vertex = edge.get_destination().replace('"', '')
                 self.infra_graph.add_edge(from_vertex, to_vertex)
         except Exception as e:
-            raise Exception(f"An unexpected error occurred: {e}")
+            raise InfraOperationException(f"An unexpected error occurred when contructing infra graph: {e}")
     
     # Reverse the graph so that when deleting cascade, it will save computation cost
     def _construct_infrastructure_graph_in_reverse(self):
@@ -108,42 +110,51 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                 to_vertex = edge.get_source().replace('"', '')
                 self.infra_graph.add_edge(from_vertex, to_vertex)
         except Exception as e:
-            raise Exception(f"An unexpected error occurred: {e}")
+            raise InfraOperationException(f"An unexpected error occurred when constructing infra graph in reverse: {e}")
     
     # need review
     # need to filter out null, empty, "" values (falsy values)
     # need avoid conflic between attributes and nested attributes
     def _filter_attributes(self, type, attributes_dict):
-        for key in attributes_dict.copy():
-            if key not in RESOURCES[type]: # remove attributes not in the resource type
-                del attributes_dict[key]
-            elif not attributes_dict[key]:  # remove falsy values
-                del attributes_dict[key]
-            elif isinstance(attributes_dict[key], dict) and attributes_dict[key]: # remove nested attributes not in the resource type
-                for nested_key in attributes_dict[key].copy():
-                    if nested_key not in RESOURCES[type][key]:
-                        del attributes_dict[key][nested_key]
-            elif isinstance(attributes_dict[key], list) and attributes_dict[key]: # remove nested attributes not in the resource type
-                for nested_element in attributes_dict[key]:
-                    if isinstance(nested_element, dict):
-                        for nested_key in nested_element.copy():
-                            if (not RESOURCES[type][key][0]) or (nested_key not in RESOURCES[type][key][0]):
-                                del nested_element[nested_key]
-        return attributes_dict
+        try:
+            for key in attributes_dict.copy():
+                if key not in RESOURCES[type]: # remove attributes not in the resource type
+                    del attributes_dict[key]
+                elif not attributes_dict[key]:  # remove falsy values
+                    del attributes_dict[key]
+                elif isinstance(attributes_dict[key], dict) and attributes_dict[key]: # remove nested attributes not in the resource type
+                    for nested_key in attributes_dict[key].copy():
+                        if nested_key not in RESOURCES[type][key]:
+                            del attributes_dict[key][nested_key]
+                elif isinstance(attributes_dict[key], list) and attributes_dict[key]: # remove nested attributes not in the resource type
+                    for nested_element in attributes_dict[key]:
+                        if isinstance(nested_element, dict):
+                            for nested_key in nested_element.copy():
+                                if (not RESOURCES[type][key][0]) or (nested_key not in RESOURCES[type][key][0]):
+                                    del nested_element[nested_key]
+            return attributes_dict
+        except Exception as e:
+            raise InfraOperationException(f"An unexpected error occurred when filtering attributes: {e}")
 
     def add_resource(self, resource_type, resource_name, resource_values, depends_on=None):
-        if depends_on:
-            resource_values['depends_on'] = depends_on
-        if resource_type not in self.infra_dict['resource']:
-            self.infra_dict['resource'][resource_type] = {}
-        self.infra_dict['resource'][resource_type][resource_name] = resource_values
+        try:
+            if depends_on:
+                resource_values['depends_on'] = depends_on
+            if resource_type not in self.infra_dict['resource']:
+                self.infra_dict['resource'][resource_type] = {}
+            self.infra_dict['resource'][resource_type][resource_name] = resource_values
+        except Exception as e:
+            raise InfraOperationException(f"An error occurred while adding resource {resource_name} of type {resource_type}: {e}")
 
     def modify_resource(self, resource_type, resource_name, resource_values, depends_on=None):
-        if resource_type not in self.infra_dict['resource'] or resource_name not in self.infra_dict['resource'][resource_type]:
-            raise Exception(f"Resource {resource_name} of type {resource_type} does not exist.")
-        if depends_on:
-            resource_values['depends_on'] = depends_on
-        self.infra_dict['resource'][resource_type][resource_name].update(resource_values)
+        try:
+            if resource_type not in self.infra_dict['resource'] or resource_name not in self.infra_dict['resource'][resource_type]:
+                raise Exception(f"Resource {resource_name} of type {resource_type} does not exist.")
+            if depends_on:
+                resource_values['depends_on'] = depends_on
+            self.infra_dict['resource'][resource_type][resource_name].update(resource_values)
+        except Exception as e:
+            raise InfraOperationException(f"An error occurred while modifying resource {resource_name} of type {resource_type}: {e}")
 
     def delete_resource(self, resource_type, resource_name):
         if resource_type not in self.infra_dict['resource'] or resource_name not in self.infra_dict['resource'][resource_type]:
@@ -156,7 +167,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                 type, name = node.split('.')
                 del self.infra_dict['resource'][type][name]
         except Exception as e:
-            raise Exception(f"An error occurred while deleting resource {resource_name} of type {resource_type}: {e}")
+            raise InfraOperationException(f"An error occurred while deleting resource {resource_name} of type {resource_type}: {e}")
 
     def output_infrastructure(self):
         try:
@@ -168,7 +179,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             # # debug
             # print(json.dumps(self.infra_dict, indent=2))
         except Exception as e:
-            raise Exception(f"An error occurred while saving the infrastructure: {e}")
+            raise InfraOperationException(f"An error occurred while saving the infrastructure: {e}")
     
     def apply_infrastructure(self):
         try:
@@ -176,16 +187,16 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             result = self.tf.apply()
             print(result)
             # backup the state file into nosql database
-            # TODO: implement backup state file into nosql database
+            self.backup_infra()
         except Exception as e:
-            raise Exception(f"An unexpected error occurred when apply: {e}")
+            raise InfraOperationException(f"An unexpected error occurred when apply: {e}")
     
     def destroy_infrastructure(self):
         try:
             result = self.tf.destroy()
             print(result)
         except Exception as e:
-            raise Exception(f"An unexpected error occurred when destroy: {e}")
+            raise InfraOperationException(f"An unexpected error occurred when destroy: {e}")
         
     def backup_infra(self):
         try:
@@ -211,8 +222,11 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                     "timestamp": Utils.get_current_timestamp()
                 }
             )
+        except DatastoreOperationException as e:
+            # only log the error, do not raise exception
+            pass
         except Exception as e:
-            raise Exception(f"An unexpected error occurred when backup: {e}")
+            raise InfraOperationException(f"An unexpected error occurred when backup: {e}")
         
     def restore_infra(self):
         try:
@@ -226,7 +240,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                 resource_id = resource['resource_id']
                 self.import_resource(resource_type, resource_name, resource_id)            
         except Exception as e:
-            raise Exception(f"An unexpected error occurred when restore: {e}")
+            raise InfraOperationException(f"An unexpected error occurred when restoring: {e}")
         
     def import_resource(self, resource_type, resource_name, resource_id):
         try:
@@ -240,4 +254,4 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             result = self.tf.import_resource(f"{resource_type}.{resource_name}", resource_id)
             print(result)
         except Exception as e:
-            raise Exception(f"An unexpected error occurred when import: {e}")
+            raise InfraOperationException(f"An unexpected error occurred when importing: {e}")

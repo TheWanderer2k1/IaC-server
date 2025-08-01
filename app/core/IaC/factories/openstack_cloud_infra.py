@@ -7,6 +7,7 @@ from .openstack_resource import RESOURCES
 from app.core.IaC.interfaces.cloud_infra_interface import ICloudInfrastructure
 from app.core.IaC.lib.Terraform.tf import Terraform # chỗ này nên dùng DI và interface để có thể mở rộng sang tool khác (OpenTofu)
 from app.utils.utils import Utils
+from app.database.factories.mongo_datastore_creator import mongo_creator
 
 class OpenStackCloudInfrastructure(ICloudInfrastructure):
     def __init__(self, path_to_tf_workspace, 
@@ -16,6 +17,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                     token,  # Use token for authentication
                     tenant_name,
                     endpoint_overrides):
+        self.mongo_datastore = mongo_creator.create_datastore()
         self.path_to_tf_workspace = path_to_tf_workspace
         self.tf = Terraform(self.path_to_tf_workspace)  # Đang bị gán cứng dùng Terraform
         # initialize the infrastructure dictionary with required providers and resources
@@ -173,6 +175,8 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             # tf apply
             result = self.tf.apply()
             print(result)
+            # backup the state file into nosql database
+            # TODO: implement backup state file into nosql database
         except Exception as e:
             raise Exception(f"An unexpected error occurred when apply: {e}")
     
@@ -182,6 +186,47 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             print(result)
         except Exception as e:
             raise Exception(f"An unexpected error occurred when destroy: {e}")
+        
+    def backup_infra(self):
+        try:
+            # read from state file to retrieve all resources's types, names and ids
+            document = []
+            json_output = self.tf.show_json()
+            state_data = json.loads(json_output)
+            for tf_resource in state_data.get('values', {}).get('root_module', {}).get('resources', []):
+                resource_type = tf_resource['type']
+                resource_name = tf_resource['name']
+                resource_id = tf_resource['values'].get('id', None)
+                if resource_id:
+                    document.append({
+                        "resource_type": resource_type,
+                        "resource_name": resource_name,
+                        "resource_id": resource_id
+                    })
+            # create/update to mongodb
+            self.mongo_datastore.update("infra_backup", 
+                {"path_to_tf_workspace": self.path_to_tf_workspace}, 
+                {
+                    "backup_data": document,
+                    "timestamp": Utils.get_current_timestamp()
+                }
+            )
+        except Exception as e:
+            raise Exception(f"An unexpected error occurred when backup: {e}")
+        
+    def restore_infra(self):
+        try:
+            # retrieve the latest backup data from mongodb
+            backup_data = self.mongo_datastore.find("infra_backup", {"path_to_tf_workspace": self.path_to_tf_workspace})
+            if not backup_data:
+                raise Exception("No backup data found for this workspace.")
+            for resource in backup_data[0]['backup_data']:
+                resource_type = resource['resource_type']
+                resource_name = resource['resource_name']
+                resource_id = resource['resource_id']
+                self.import_resource(resource_type, resource_name, resource_id)            
+        except Exception as e:
+            raise Exception(f"An unexpected error occurred when restore: {e}")
         
     def import_resource(self, resource_type, resource_name, resource_id):
         try:

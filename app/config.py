@@ -65,4 +65,11 @@ error_handler = logging.FileHandler(log_file.as_posix())
 error_handler.setLevel(logging.ERROR)
 error_handler.setFormatter(formatter)
 logger.addHandler(error_handler)
+
+# mongo config
+mongo_conn = {
+    "host": "webserver",
+    "port": 27017,
+    "db_name": "default_db"  # default database name
+}
     

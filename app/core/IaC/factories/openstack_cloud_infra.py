@@ -10,6 +10,7 @@ from app.utils.utils import Utils
 from app.database.factories.mongo_datastore_creator import mongo_creator
 from app.exceptions.datastore_exception import DatastoreOperationException
 from app.exceptions.infra_exception import InfraOperationException
+from datetime import datetime
 
 class OpenStackCloudInfrastructure(ICloudInfrastructure):
     def __init__(self, path_to_tf_workspace, 
@@ -187,7 +188,11 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
             result = self.tf.apply()
             print(result)
             # backup the state file into nosql database
-            self.backup_infra()
+            try:
+                self.backup_infra()
+            except Exception as e:
+                # only log the error, do not raise exception
+                pass
         except Exception as e:
             raise InfraOperationException(f"An unexpected error occurred when apply: {e}")
     
@@ -219,7 +224,7 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                 {"path_to_tf_workspace": self.path_to_tf_workspace}, 
                 {
                     "backup_data": document,
-                    "timestamp": Utils.get_current_timestamp()
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
             )
         except DatastoreOperationException as e:

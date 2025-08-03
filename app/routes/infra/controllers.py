@@ -5,6 +5,7 @@ from .schemas import InfraPreset1Request
 from app.utils.utils import Utils
 import json
 from app.exceptions.controller_exception import ControllerException
+import time
 
 class InfraController(BaseController):
     def __init__(self, 
@@ -13,7 +14,7 @@ class InfraController(BaseController):
                  location: dict[str, str]):
         super().__init__(request, cloud_infra_creator, location)
 
-    def provision_infra_preset1(self, infra_preset1_request: InfraPreset1Request):
+    def provision_infra_vdi(self, infra_preset1_request: InfraPreset1Request):
         try:
             config = infra_preset1_request.model_dump(exclude_none=True)
             # defind resource name in config file
@@ -145,3 +146,13 @@ class InfraController(BaseController):
             return created_resources
         except Exception as e:
             raise ControllerException(f"An error occurred while provisioning infrastructure preset 1: {e}")
+        
+    @staticmethod
+    def delayed_response():
+        try:
+            print("Starting delay...")
+            time.sleep(10) 
+            print("Response after delay")
+            return "Return some data after delay"
+        except Exception as e:
+            raise ControllerException(f"An error occurred in the test route: {e}")

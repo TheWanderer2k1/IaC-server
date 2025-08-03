@@ -10,7 +10,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app, dispatch)
         self.exclude_routes = ["/v3/auth/tokens",
                                "/docs",
-                               "/openapi.json"]
+                               "/openapi.json",
+                               "/infra/test"]
 
     async def dispatch(self, request: Request, call_next):
         token = request.headers.get("X-Subject-Token")

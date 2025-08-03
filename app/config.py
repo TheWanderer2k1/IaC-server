@@ -1,13 +1,12 @@
 from pydantic_settings import BaseSettings
 from typing import Any
-from huey import RedisHuey
 from pathlib import Path
 import redis
 import logging
 
 class Settings(BaseSettings):
     app_name: str = "IaC server"
-    workspace_basedir: str = r"D:\work_folder\Projects\IaC_user_workspace"
+    workspace_basedir: str = r"D:\work\projects\IaC_user_workspace"
     openstack_config: dict[str, Any] = {
         "auth_url": "http://controller:5000/v3/",
         "region": "RegionOne",
@@ -42,34 +41,35 @@ settings = Settings()
 
 # redis config
 redis_conn = {
-    "host": "192.168.239.155",
+    "host": "generalserver",
     "port": 6379
 }
 redis_client = redis.Redis(**redis_conn)
 
-# queue config
-huey = RedisHuey('huey-queue', **redis_conn, db=0)
-# nếu dùng huey, phải register task tại compile time nếu ko consumer sẽ không tìm thấy task trong registry
-@huey.task()
-def run_job(func, **kwargs):
-    return func(**kwargs)
-
 # log config
-logger = logging.getLogger("logger")
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-log_file = Path(r'./log/app.error')
-log_file.parent.mkdir(parents=True, exist_ok=True)
-if not log_file.exists():
-    log_file.write_text('')
-error_handler = logging.FileHandler(log_file.as_posix())
-error_handler.setLevel(logging.ERROR)
-error_handler.setFormatter(formatter)
-logger.addHandler(error_handler)
+def setup_logger(name, level, filepath):
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    path = Path(filepath)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        path.write_text('')
+    handler = logging.FileHandler(path.as_posix())
+    handler.setLevel(level)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return logger
 
+error_logger = setup_logger("error_logger", logging.ERROR, './log/app.error')
+info_logger = setup_logger("info_logger", logging.INFO, './log/app.info')
 # mongo config
 mongo_conn = {
-    "host": "webserver",
+    "host": "generalserver",
     "port": 27017,
     "db_name": "default_db"  # default database name
 }
+
+# webhook config
+vdi_webhook_url = "http://generalserver:8000/webhook"  # replace with
     

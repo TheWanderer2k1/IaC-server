@@ -4,7 +4,7 @@ services:
   app:
     build: ./app
     volumes:
-      - /root/IaC-server:/app/IaC-server
+      - /root/IaC-server:/IaC-server
     ports:
       - "8000:8000"
 

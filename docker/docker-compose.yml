@@ -6,6 +6,7 @@ services:
     restart: always
     volumes:
       - /root/IaC-server:/IaC-server
+      - /root/IaC_user_workspace:/root/IaC_user_workspace # map user workspace
     ports:
       - "8000:8000"
 

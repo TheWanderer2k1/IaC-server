@@ -2,6 +2,9 @@ FROM python:3.10
 
 WORKDIR /IaC-server
 
-RUN pip install --no-cache-dir --upgrade -r /IaC-server/requirements.txt
+COPY ./requirements.txt ./requirements.txt
 
-CMD ["huey_consumer", "app.core.queue.factories.huey_task.huey", "--logfile='/IaC-server/log/queue.log'"]
+RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
+
+CMD ["huey_consumer", "app.core.queue.factories.huey_task.huey", "--logfile=./log/queue.log"]
+

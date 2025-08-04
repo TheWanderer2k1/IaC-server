@@ -1,15 +1,17 @@
-version: '3.8'
-
 services:
   app:
-    build: ./app
+    build:
+      context: ..
+      dockerfile: docker/app/dockerfile
     volumes:
       - /root/IaC-server:/IaC-server
     ports:
       - "8000:8000"
 
   queue_worker:
-    build: ./queue_worker
+    build:
+      context: ..
+      dockerfile: docker/queue_worker/dockerfile
     volumes:
       - /root/IaC-server:/IaC-server
 

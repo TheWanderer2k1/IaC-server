@@ -41,7 +41,7 @@ settings = Settings()
 
 # redis config
 redis_conn = {
-    "host": "generalserver",
+    "host": "redis",
     "port": 6379
 }
 redis_client = redis.Redis(**redis_conn)
@@ -65,7 +65,7 @@ error_logger = setup_logger("error_logger", logging.ERROR, './log/app.error')
 info_logger = setup_logger("info_logger", logging.INFO, './log/app.info')
 # mongo config
 mongo_conn = {
-    "host": "generalserver",
+    "host": "mongodb",
     "port": 27017,
     "db_name": "default_db"  # default database name
 }

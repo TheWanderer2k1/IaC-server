@@ -1,0 +1,7 @@
+FROM python:3.10
+
+WORKDIR /IaC-server
+
+RUN pip install --no-cache-dir --upgrade -r /IaC-server/requirements.txt
+
+CMD ["fastapi", "run", "/IaC-server/app/app.py", "--port", "8000"]

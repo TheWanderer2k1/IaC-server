@@ -7,6 +7,10 @@ services:
     volumes:
       - /root/IaC-server:/IaC-server
       - /root/IaC_user_workspace:/root/IaC_user_workspace # map user workspace
+    environment:
+      - http_proxy=http://10.3.62.5:3128
+      - https_proxy=http://10.3.62.5:3128
+      - no_proxy=localhost,127.0.1,::1,queue_worker,redis,mongodb,10.38.26.25
     ports:
       - "8000:8000"
 
@@ -17,6 +21,10 @@ services:
     restart: always
     volumes:
       - /root/IaC-server:/IaC-server
+    environment:
+      - http_proxy=http://10.3.62.5:3128
+      - https_proxy=http://10.3.62.5:3128
+      - no_proxy=localhost,127.0.1,::1,app,redis,mongodb,10.38.26.25
 
   redis:
     image: redis:latest

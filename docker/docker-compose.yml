@@ -3,6 +3,7 @@ services:
     build:
       context: ..
       dockerfile: docker/app/dockerfile
+    restart: always
     volumes:
       - /root/IaC-server:/IaC-server
     ports:
@@ -12,15 +13,18 @@ services:
     build:
       context: ..
       dockerfile: docker/queue_worker/dockerfile
+    restart: always
     volumes:
       - /root/IaC-server:/IaC-server
 
   redis:
     image: redis:latest
+    restart: always
     ports:
       - "127.0.0.1:6379:6379"
 
   mongodb:
     image: mongo:latest
+    restart: always
     ports:
       - "127.0.0.1:27017:27017"

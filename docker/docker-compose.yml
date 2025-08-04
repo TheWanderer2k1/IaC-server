@@ -11,7 +11,7 @@ services:
   queue_worker:
     build: ./queue_worker
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - /root/IaC-server:/IaC-server
 
   redis:
     image: redis:latest

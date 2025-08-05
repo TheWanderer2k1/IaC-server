@@ -1,5 +1,23 @@
 FROM python:3.10
 
+# Install prerequisites for Terraform
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Terraform
+ARG TERRAFORM_VERSION=1.12.2
+RUN curl -fsSL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o terraform.zip \
+    && unzip terraform.zip \
+    && mv terraform /usr/local/bin/ \
+    && rm terraform.zip \
+    && chmod +x /usr/local/bin/terraform
+
+# Verify Terraform installation
+RUN terraform version
+
 WORKDIR /IaC-server
 
 COPY ./requirements.txt ./requirements.txt

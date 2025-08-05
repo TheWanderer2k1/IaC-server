@@ -1,16 +1,12 @@
 import json
 import pydot
 from pathlib import Path
-from app.config import settings
 from app.core.IaC.lib.graph import DirectedAcyclicGraph
 from .openstack_resource import RESOURCES
 from app.core.IaC.interfaces.cloud_infra_interface import ICloudInfrastructure
 from app.core.IaC.lib.Terraform.tf import Terraform # chỗ này nên dùng DI và interface để có thể mở rộng sang tool khác (OpenTofu)
 from app.utils.utils import Utils
-from app.database.factories.mongo_datastore_creator import mongo_creator
-from app.exceptions.datastore_exception import DatastoreOperationException
 from app.exceptions.infra_exception import InfraOperationException
-from datetime import datetime
 
 class OpenStackCloudInfrastructure(ICloudInfrastructure):
     def __init__(self, path_to_tf_workspace, 
@@ -20,7 +16,6 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                     token,  # Use token for authentication
                     tenant_name,
                     endpoint_overrides):
-        self.mongo_datastore = mongo_creator.create_datastore()
         self.path_to_tf_workspace = path_to_tf_workspace
         self.tf = Terraform(self.path_to_tf_workspace)  # Đang bị gán cứng dùng Terraform
         # initialize the infrastructure dictionary with required providers and resources
@@ -219,31 +214,19 @@ class OpenStackCloudInfrastructure(ICloudInfrastructure):
                         "resource_name": resource_name,
                         "resource_id": resource_id
                     })
-            # create/update to mongodb
-            self.mongo_datastore.update("infra_backup", 
-                {"path_to_tf_workspace": self.path_to_tf_workspace}, 
-                {
-                    "backup_data": document,
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
-            )
-        except DatastoreOperationException as e:
-            # only log the error, do not raise exception
-            pass
+            return document
         except Exception as e:
             raise InfraOperationException(f"An unexpected error occurred when backup: {e}")
         
-    def restore_infra(self):
+    def restore_infra(self, backup_data):
         try:
-            # retrieve the latest backup data from mongodb
-            backup_data = self.mongo_datastore.find("infra_backup", {"path_to_tf_workspace": self.path_to_tf_workspace})
             if not backup_data:
                 raise Exception("No backup data found for this workspace.")
             for resource in backup_data[0]['backup_data']:
                 resource_type = resource['resource_type']
                 resource_name = resource['resource_name']
                 resource_id = resource['resource_id']
-                self.import_resource(resource_type, resource_name, resource_id)            
+                self.import_resource(resource_type, resource_name, resource_id)      
         except Exception as e:
             raise InfraOperationException(f"An unexpected error occurred when restoring: {e}")
         

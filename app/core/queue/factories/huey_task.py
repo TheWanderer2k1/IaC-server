@@ -6,7 +6,9 @@ import asyncio
 from app.config import vdi_webhook_url
 import json
 from app.config import info_logger, error_logger
-
+from app.exceptions.datastore_exception import DatastoreOperationException
+from app.database.factories.mongo_datastore_creator import mongo_creator
+from datetime import datetime
 # queue init
 huey = RedisHuey('huey-queue', **redis_conn, db=0)
 
@@ -45,3 +47,40 @@ def run_job(func, **kwargs):
             error_logger.error(f"Failed to call webhook: {e}")
             pass
         raise QueueJobException(f"Exception in job: {e}")
+    
+# custom task only for run infra job
+@huey.task()
+def run_infra_job(obj, method_name, **kwargs):
+    try:
+        func = getattr(obj, method_name)
+        result = func(**kwargs)
+        info_logger.info(f"Job completed with result: {result}")
+        try:
+            asyncio.run(make_http_request(vdi_webhook_url, {"result": result}))
+            info_logger.info(f"Webhook called successfully with result: {result}")
+        except Exception as e1:
+            error_logger.error(f"Failed to call webhook: {e1}")
+            pass
+        # backup to mongodb
+        try:
+            mongo_datastore = mongo_creator.create_datastore()
+            document = obj.cloud_infra.backup_infra()
+            mongo_datastore.update("infra_backup", 
+                {"path_to_tf_workspace": obj.cloud_infra.path_to_tf_workspace}, 
+                {
+                    "backup_data": document,
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+            )
+        except Exception as e2:
+            error_logger.error(f"Failed to backup: {e2}")
+            pass
+    except Exception as e3:
+        # gọi webhook báo exception
+        try:
+            asyncio.run(make_http_request(vdi_webhook_url, {"error": e3}))
+            info_logger.error(f"Exception in job: {e3}")
+        except Exception as e4:
+            error_logger.error(f"Failed to call webhook: {e4}")
+            pass
+        raise QueueJobException(f"Exception in infra job: {e3}")

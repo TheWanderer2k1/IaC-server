@@ -4,6 +4,7 @@ from typing import Annotated
 from .controllers import InfraController
 from .schemas import InfraPreset1Request
 from .dependencies import get_infra_creator, get_queue_creator, common_query_params
+import pickle
 
 router = APIRouter()
 CommonQueryParams = Annotated[dict, Depends(common_query_params)]
@@ -16,12 +17,10 @@ async def handle_provision_infra(request: Request,
                                  params: CommonQueryParams):
     try:
         controller = InfraController(request, infra_creator, params)
-        state = controller.provision_infra_vdi(infra_preset1_request)
-        return JSONResponse(content=state,status_code=200)
-        # q.add_job(controller.provision_infra_vdi, infra_preset1_request=infra_preset1_request)
-        # return JSONResponse(content={"message": "Infra is being provisioned"}, status_code=202)
-    except Exception:
-        raise HTTPException(status_code=500, detail="Provision infra failed!")
+        q.add_infra_job(controller, "provision_infra_vdi", infra_preset1_request=infra_preset1_request)
+        return JSONResponse(content={"message": "Infra is being provisioned"}, status_code=202)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Provision infra failed!: {e}")
     
 @router.get("/infra/test")
 async def test_route():

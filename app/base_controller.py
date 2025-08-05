@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 from app.config import redis_client
 from app.exceptions.controller_exception import ControllerException
+import copy
 
 class BaseController:
     def __init__(self,
@@ -15,7 +16,7 @@ class BaseController:
             self.cloud_infra_creator = cloud_infra_creator
             self.location = location
             self.user_workspace_path = settings.workspace_basedir + f"/{location.get('domain')}/{location.get('project')}/{location.get('username')}"
-            endpoint_overrides = settings.openstack_config.get("endpoints", {})
+            endpoint_overrides = copy.deepcopy(settings.openstack_config.get("endpoints", {})) # avoid modifying the original config
             self.token = request.headers.get("X-Subject-Token")
             if endpoint_overrides.get("volumev3"):
                 user_session = redis_client.get(self.token)

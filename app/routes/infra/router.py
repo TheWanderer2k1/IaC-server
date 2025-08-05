@@ -16,10 +16,10 @@ async def handle_provision_infra(request: Request,
                                  params: CommonQueryParams):
     try:
         controller = InfraController(request, infra_creator, params)
-        # state = controller.provision_infra_vdi(infra_preset1_request)
-        # return JSONResponse(content=state,status_code=200)
-        q.add_job(controller.provision_infra_vdi, infra_preset1_request)
-        return JSONResponse(content={"message": "Infra is being provisioned"}, status_code=202)
+        state = controller.provision_infra_vdi(infra_preset1_request)
+        return JSONResponse(content=state,status_code=200)
+        # q.add_job(controller.provision_infra_vdi, infra_preset1_request=infra_preset1_request)
+        # return JSONResponse(content={"message": "Infra is being provisioned"}, status_code=202)
     except Exception:
         raise HTTPException(status_code=500, detail="Provision infra failed!")
     

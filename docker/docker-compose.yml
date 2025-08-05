@@ -29,11 +29,7 @@ services:
   redis:
     image: redis:latest
     restart: always
-    ports:
-      - "127.0.0.1:6379:6379"
 
   mongodb:
     image: mongo:latest
     restart: always
-    ports:
-      - "127.0.0.1:27017:27017"

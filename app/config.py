@@ -6,7 +6,7 @@ import logging
 
 class Settings(BaseSettings):
     app_name: str = "IaC server"
-    workspace_basedir: str = r"D:\work\projects\IaC_user_workspace"
+    workspace_basedir: str = r"/root/IaC_user_workspace"
     openstack_config: dict[str, Any] = {
         "auth_url": "http://controller:5000/v3/",
         "region": "RegionOne",
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
             "identity": "http://controller:5000/v3/",
             "image": "http://controller:9292/v2/",
             # "network": "http://controller:9696/",
-            # "volumev3": ""
+            "volumev3": "http://controller:8776/v3/"
         },
         "provider_mapping": {
             "Epoxy": "3.0.0",

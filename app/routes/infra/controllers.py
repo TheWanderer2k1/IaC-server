@@ -72,7 +72,7 @@ class InfraController(BaseController):
                 resource_values={
                     "description": "bootable volume",
                     # "image_id": config.get("image_id"),
-                    "source_vol_id": "ed6a5f0f-beff-4177-89eb-e1f261963e14",
+                    "source_vol_id": config.get("base_vol_id"),
                     "name": f"block_vol_{Utils.generate_random_string(5)}",
                     # "volume_type": "HDD-phase3",
                     "size": config.get("vol_size"),

@@ -9,24 +9,13 @@ from app.config import info_logger, error_logger
 from app.exceptions.datastore_exception import DatastoreOperationException
 from app.database.factories.mongo_datastore_creator import mongo_creator
 from datetime import datetime
-import pika
+from app.core.msg_queue.rabbitmq_queue import RabbitMQQueue
 
 # queue init
 huey = RedisHuey('huey-queue', **redis_conn, db=0)
 
-# RabbitMQ init
-credentials = pika.PlainCredentials(username='hoanganh', password='hoanganh')
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq', credentials=credentials)
-)
-test_channel = connection.channel()
-test_channel.exchange_declare(exchange='vdi_test_exchange', exchange_type='direct')
-test_channel.queue_declare(queue='vdi_test_queue')
-test_channel.queue_bind(queue='vdi_test_queue', exchange='vdi_test_exchange', routing_key='vdi_test_key')
-
-test_channel.exchange_declare(exchange='vdi_test_error_exchange', exchange_type='direct')
-test_channel.queue_declare(queue='vdi_test_error_queue')
-test_channel.queue_bind(queue='vdi_test_error_queue', exchange='vdi_test_error_exchange', routing_key='vdi_test_error_key')
+msg_queue = RabbitMQQueue().get_instance()
+msg_queue.create_channel("vdi")
 
 # make http request
 async def make_http_request(url, data):
@@ -48,11 +37,9 @@ def run_job(func, **kwargs):
     try:
         result = func(**kwargs)
         info_logger.info(f"Job completed with result: {result}")
-        # send result to RabbitMQ
-        test_channel.basic_publish(exchange='vdi_test_exchange', routing_key='vdi_test_key', body=result)
+        msg_queue.publish_result("vdi", result)
     except Exception as e:
-        # send error to RabbitMQ
-        test_channel.basic_publish(exchange='vdi_test_error_exchange', routing_key='vdi_test_error_key', body=e)
+        msg_queue.emit_error("vdi", e)
         raise QueueJobException(f"Exception in job: {e}")
     
 # custom task only for run infra job

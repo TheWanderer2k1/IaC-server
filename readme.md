@@ -11,5 +11,5 @@ docker compose up --build -d
 ### Lưu ý
 - Phía dùng api cần có webhook url để nhận thông báo hoặc kết nối với message queue
 - Tạo vdi (áp dụng tương tự với các client/app khác muốn kết nối tới IaC server)
-    rabbitmqctl add_user "vdi" "vdi"
-    rabbitmqctl set_permissions -p "/" "vdi" "" "" "^vdi_.*$"
+    rabbitmqctl add_user "192.168.239.1" "192.168.239.1"
+    rabbitmqctl set_permissions -p "/" "192.168.239.1" "" "" "^192.168.239.1_.*$"

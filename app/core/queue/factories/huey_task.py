@@ -14,8 +14,9 @@ from app.core.msg_queue.rabbitmq_queue import RabbitMQQueue
 huey = RedisHuey('huey-queue', **settings.redis_conn, db=0)
 
 msg_queue = RabbitMQQueue().get_instance()
-msg_queue.create_channel("vdi")
-msg_queue.init_direct_exchange_and_queue("vdi")
+# init channel, exchange and queue for all client
+msg_queue.create_channel("192.168.239.1")
+msg_queue.init_direct_exchange_and_queue("192.168.239.1")
 
 # make http request
 async def make_http_request(url, data):
@@ -33,18 +34,18 @@ async def make_http_request(url, data):
 
 # register task
 @huey.task()
-def run_job(func, **kwargs):
+def run_job(host_ip: str, func, **kwargs):
     try:
         result = func(**kwargs)
         info_logger.info(f"Job completed with result: {result}")
-        msg_queue.publish_result("vdi", result)
+        msg_queue.publish_result(host_ip, result)
     except Exception as e:
-        msg_queue.emit_error("vdi", e)
+        msg_queue.emit_error(host_ip, e)
         raise QueueJobException(f"Exception in job: {e}")
     
 # custom task only for run infra job
 @huey.task()
-def run_infra_job(obj, method_name, **kwargs):
+def run_infra_job(host_ip: str, obj, method_name, **kwargs):
     try:
         func = getattr(obj, method_name)
         result = func(**kwargs)
@@ -55,7 +56,7 @@ def run_infra_job(obj, method_name, **kwargs):
         # except Exception as e1:
         #     error_logger.error(f"Failed to call webhook: {e1}")
         #     pass
-        msg_queue.publish_result("vdi", result)
+        msg_queue.publish_result(host_ip, result)
         # backup to mongodb
         try:
             mongo_datastore = mongo_creator.create_datastore()
@@ -82,5 +83,5 @@ def run_infra_job(obj, method_name, **kwargs):
         # except Exception as e4:
         #     error_logger.error(f"Failed to call webhook: {e4}")
         #     pass
-        msg_queue.publish_result("vdi", result)
+        msg_queue.publish_result(host_ip, result)
         raise QueueJobException(f"Exception in infra job: {e3}")

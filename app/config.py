@@ -51,8 +51,8 @@ class Settings(BaseSettings):
             "password": "hoanganh"
         },
         "client_ids": {
-            "vdi": 0,
-            "portal": 1
+            "192.168.239.1": 0,
+            "portal ip": 1
         }
     }
     vdi_webhook_url: str = "http://generalserver:8000/webhook"  # replace with

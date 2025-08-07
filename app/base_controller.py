@@ -44,7 +44,16 @@ class BaseController:
             # apply infra object
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
-            return True
+            # read from terrfarm state
+            with open(f"{self.user_workspace_path}/terraform.tfstate", 'r') as f:
+                state = json.load(f)
+            created_resource = None
+            for resource in state.get('resources', []):
+                if resource['name'] == resource_name:
+                    created_resource = resource
+                    break
+            # return the created resources
+            return created_resource
         except Exception as e:
             raise ControllerException(f"Failed to create resource {resource_name} of type {resource_type}: {e}")
         
@@ -67,7 +76,16 @@ class BaseController:
             )
             self.cloud_infra.output_infrastructure()
             self.cloud_infra.apply_infrastructure()
-            return True
+            # read from terrfarm state
+            with open(f"{self.user_workspace_path}/terraform.tfstate", 'r') as f:
+                state = json.load(f)
+            created_resource = None
+            for resource in state.get('resources', []):
+                if resource['name'] == resource_name:
+                    created_resource = resource
+                    break
+            # return the created resources
+            return created_resource
         except Exception as e:
             raise ControllerException(f"Failed to modify resource {resource_id} of type {resource_type}: {e}")
 

@@ -1,5 +1,5 @@
 from huey import RedisHuey
-from app.config import redis_conn, vdi_webhook_url
+from app.config import settings
 from app.exceptions.queuejob_exception import QueueJobException
 import aiohttp
 import asyncio
@@ -12,7 +12,7 @@ from datetime import datetime
 from app.core.msg_queue.rabbitmq_queue import RabbitMQQueue
 
 # queue init
-huey = RedisHuey('huey-queue', **redis_conn, db=0)
+huey = RedisHuey('huey-queue', **settings.redis_conn, db=0)
 
 msg_queue = RabbitMQQueue().get_instance()
 msg_queue.create_channel("vdi")
@@ -50,7 +50,7 @@ def run_infra_job(obj, method_name, **kwargs):
         result = func(**kwargs)
         info_logger.info(f"Job completed with result: {result}")
         try:
-            asyncio.run(make_http_request(vdi_webhook_url, {"result": result}))
+            asyncio.run(make_http_request(settings.vdi_webhook_url, {"result": result}))
             info_logger.info(f"Webhook called successfully with result: {result}")
         except Exception as e1:
             error_logger.error(f"Failed to call webhook: {e1}")
@@ -76,7 +76,7 @@ def run_infra_job(obj, method_name, **kwargs):
     except Exception as e3:
         # gọi webhook báo exception
         try:
-            asyncio.run(make_http_request(vdi_webhook_url, {"error": e3}))
+            asyncio.run(make_http_request(settings.vdi_webhook_url, {"error": e3}))
             info_logger.error(f"Exception in job: {e3}")
         except Exception as e4:
             error_logger.error(f"Failed to call webhook: {e4}")

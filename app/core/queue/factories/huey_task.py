@@ -15,6 +15,7 @@ huey = RedisHuey('huey-queue', **settings.redis_conn, db=0)
 
 msg_queue = RabbitMQQueue().get_instance()
 msg_queue.create_channel("vdi")
+msg_queue.init_direct_exchange_and_queue("vdi")
 
 # make http request
 async def make_http_request(url, data):
@@ -48,12 +49,13 @@ def run_infra_job(obj, method_name, **kwargs):
         func = getattr(obj, method_name)
         result = func(**kwargs)
         info_logger.info(f"Job completed with result: {result}")
-        try:
-            asyncio.run(make_http_request(settings.vdi_webhook_url, {"result": result}))
-            info_logger.info(f"Webhook called successfully with result: {result}")
-        except Exception as e1:
-            error_logger.error(f"Failed to call webhook: {e1}")
-            pass
+        # try:
+        #     asyncio.run(make_http_request(settings.vdi_webhook_url, {"result": result}))
+        #     info_logger.info(f"Webhook called successfully with result: {result}")
+        # except Exception as e1:
+        #     error_logger.error(f"Failed to call webhook: {e1}")
+        #     pass
+        msg_queue.publish_result("vdi", result)
         # backup to mongodb
         try:
             mongo_datastore = mongo_creator.create_datastore()
@@ -73,11 +75,12 @@ def run_infra_job(obj, method_name, **kwargs):
             error_logger.error(f"Failed to backup: {e2}")
             pass
     except Exception as e3:
-        # gọi webhook báo exception
-        try:
-            asyncio.run(make_http_request(settings.vdi_webhook_url, {"error": e3}))
-            info_logger.error(f"Exception in job: {e3}")
-        except Exception as e4:
-            error_logger.error(f"Failed to call webhook: {e4}")
-            pass
+        # # gọi webhook báo exception
+        # try:
+        #     asyncio.run(make_http_request(settings.vdi_webhook_url, {"error": e3}))
+        #     info_logger.error(f"Exception in job: {e3}")
+        # except Exception as e4:
+        #     error_logger.error(f"Failed to call webhook: {e4}")
+        #     pass
+        msg_queue.publish_result("vdi", result)
         raise QueueJobException(f"Exception in infra job: {e3}")

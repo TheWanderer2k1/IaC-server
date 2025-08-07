@@ -3,7 +3,6 @@ from app.config import settings
 from app.exceptions.queuejob_exception import QueueJobException
 import aiohttp
 import asyncio
-from app.config import vdi_webhook_url
 import json
 from app.config import info_logger, error_logger
 from app.exceptions.datastore_exception import DatastoreOperationException

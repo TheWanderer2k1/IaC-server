@@ -16,7 +16,7 @@ huey = RedisHuey('huey-queue', **redis_conn, db=0)
 
 # RabbitMQ init
 credentials = pika.PlainCredentials(username='hoanganh', password='hoanganh')
-connection = pika.BaseConnection(
+connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='rabbitmq', credentials=credentials)
 )
 test_channel = connection.channel()

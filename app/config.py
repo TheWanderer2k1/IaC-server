@@ -55,7 +55,7 @@ class Settings(BaseSettings):
             "portal": 1
         }
     }
-    vdi_webhook_url = "http://generalserver:8000/webhook"  # replace with
+    vdi_webhook_url: str = "http://generalserver:8000/webhook"  # replace with
 
 # settings config
 settings = Settings()

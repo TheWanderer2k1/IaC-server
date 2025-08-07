@@ -9,8 +9,23 @@ from app.config import info_logger, error_logger
 from app.exceptions.datastore_exception import DatastoreOperationException
 from app.database.factories.mongo_datastore_creator import mongo_creator
 from datetime import datetime
+import pika
+
 # queue init
 huey = RedisHuey('huey-queue', **redis_conn, db=0)
+
+# RabbitMQ init
+connection = pika.BaseConnection(
+    pika.ConnectionParameters(host='localhost')
+)
+test_channel = connection.channel()
+test_channel.exchange_declare(exchange='test_exchange', exchange_type='direct')
+test_channel.queue_declare(queue='test_queue')
+test_channel.queue_bind(queue='test_queue', exchange='test_exchange', routing_key='test_key')
+
+test_channel.exchange_declare(exchange='test_error_exchange', exchange_type='direct')
+test_channel.queue_declare(queue='test_error_queue')
+test_channel.queue_bind(queue='test_error_queue', exchange='test_error_exchange', routing_key='test_error_key')
 
 # make http request
 async def make_http_request(url, data):
@@ -32,20 +47,11 @@ def run_job(func, **kwargs):
     try:
         result = func(**kwargs)
         info_logger.info(f"Job completed with result: {result}")
-        try:
-            asyncio.run(make_http_request(vdi_webhook_url, {"result": result}))
-            info_logger.info(f"Webhook called successfully with result: {result}")
-        except Exception as e:
-            error_logger.error(f"Failed to call webhook: {e}")
-            pass
+        # send result to RabbitMQ
+        test_channel.basic_publish(exchange='test_exchange', routing_key='test_key', body=result)
     except Exception as e:
-        # gọi webhook báo exception
-        try:
-            asyncio.run(make_http_request(vdi_webhook_url, {"error": e}))
-            info_logger.error(f"Exception in job: {e}")
-        except Exception as e:
-            error_logger.error(f"Failed to call webhook: {e}")
-            pass
+        # send error to RabbitMQ
+        test_channel.basic_publish(exchange='test_error_exchange', routing_key='test_error_key', body=e)
         raise QueueJobException(f"Exception in job: {e}")
     
 # custom task only for run infra job

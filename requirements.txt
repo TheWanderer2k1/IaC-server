@@ -7,3 +7,4 @@ rq
 huey
 redis
 pymongo
+pika

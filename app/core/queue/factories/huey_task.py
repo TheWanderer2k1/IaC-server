@@ -20,13 +20,13 @@ connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='rabbitmq', credentials=credentials)
 )
 test_channel = connection.channel()
-test_channel.exchange_declare(exchange='test_exchange', exchange_type='direct')
-test_channel.queue_declare(queue='test_queue')
-test_channel.queue_bind(queue='test_queue', exchange='test_exchange', routing_key='test_key')
+test_channel.exchange_declare(exchange='vdi_test_exchange', exchange_type='direct')
+test_channel.queue_declare(queue='vdi_test_queue')
+test_channel.queue_bind(queue='vdi_test_queue', exchange='vdi_test_exchange', routing_key='vdi_test_key')
 
-test_channel.exchange_declare(exchange='test_error_exchange', exchange_type='direct')
-test_channel.queue_declare(queue='test_error_queue')
-test_channel.queue_bind(queue='test_error_queue', exchange='test_error_exchange', routing_key='test_error_key')
+test_channel.exchange_declare(exchange='vdi_test_error_exchange', exchange_type='direct')
+test_channel.queue_declare(queue='vdi_test_error_queue')
+test_channel.queue_bind(queue='vdi_test_error_queue', exchange='vdi_test_error_exchange', routing_key='vdi_test_error_key')
 
 # make http request
 async def make_http_request(url, data):
@@ -49,10 +49,10 @@ def run_job(func, **kwargs):
         result = func(**kwargs)
         info_logger.info(f"Job completed with result: {result}")
         # send result to RabbitMQ
-        test_channel.basic_publish(exchange='test_exchange', routing_key='test_key', body=result)
+        test_channel.basic_publish(exchange='vdi_test_exchange', routing_key='vdi_test_key', body=result)
     except Exception as e:
         # send error to RabbitMQ
-        test_channel.basic_publish(exchange='test_error_exchange', routing_key='test_error_key', body=e)
+        test_channel.basic_publish(exchange='vdi_test_error_exchange', routing_key='vdi_test_error_key', body=e)
         raise QueueJobException(f"Exception in job: {e}")
     
 # custom task only for run infra job

@@ -23,9 +23,9 @@ async def handle_provision_infra(request: Request,
         raise HTTPException(status_code=500, detail=f"Provision infra failed!: {e}")
     
 @router.get("/infra/test")
-async def test_route():
+async def test_route(request: Request):
     try:
         q.add_job(InfraController.delayed_response)
-        return JSONResponse(content={"message": "Test route is working"}, status_code=200)
+        return JSONResponse(content={"message": f"Test route is working: {request.client.host}"}, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Test route failed: {str(e)}")

@@ -9,7 +9,7 @@ class RabbitMQQueue:
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(host='rabbitmq', credentials=credentials)
         )
-        self.channels = dict[str, BlockingChannel] = {}
+        self.channels: dict[str, BlockingChannel] = {}
 
     @classmethod
     def get_instance(cls):

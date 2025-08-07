@@ -1,10 +1,11 @@
-from app.config import mongo_conn
+from app.config import settings
 from pymongo import MongoClient
 from app.database.interfaces.datastore_interface import IDatastore
 from app.exceptions.datastore_exception import DatastoreOperationException
 
 class MongoDatastore(IDatastore):
     def __init__(self):
+        mongo_conn = settings.mongo_conn
         self.client = MongoClient(mongo_conn['host'], mongo_conn['port'])
         self.db = self.client[mongo_conn.get('db_name', 'default_db')]
 

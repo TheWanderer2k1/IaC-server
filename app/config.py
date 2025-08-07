@@ -35,16 +35,33 @@ class Settings(BaseSettings):
             "password": ""
         }
     }
+    redis_conn: dict[str, Any] = {
+        "host": "redis",
+        "port": 6379
+    }
+    mongo_conn: dict[str, Any] = {
+        "host": "mongodb",
+        "port": 27017,
+        "db_name": "default_db"  # default database name
+    }
+    rabbitmq_config: dict[str, Any] = {
+        "host": "rabbitmq",
+        "credentials": {
+            "username": "hoanganh", # dùng env
+            "password": "hoanganh"
+        },
+        "client_ids": {
+            "vdi": 0,
+            "portal": 1
+        }
+    }
+    vdi_webhook_url = "http://generalserver:8000/webhook"  # replace with
 
 # settings config
 settings = Settings()
 
 # redis config
-redis_conn = {
-    "host": "redis",
-    "port": 6379
-}
-redis_client = redis.Redis(**redis_conn)
+redis_client = redis.Redis(**settings.redis_conn)
 
 # log config
 def setup_logger(name, level, filepath):
@@ -63,13 +80,5 @@ def setup_logger(name, level, filepath):
 
 error_logger = setup_logger("error_logger", logging.ERROR, './log/app.error')
 info_logger = setup_logger("info_logger", logging.INFO, './log/app.info')
-# mongo config
-mongo_conn = {
-    "host": "mongodb",
-    "port": 27017,
-    "db_name": "default_db"  # default database name
-}
 
-# webhook config
-vdi_webhook_url = "http://generalserver:8000/webhook"  # replace with
     

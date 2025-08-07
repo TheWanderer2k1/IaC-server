@@ -1,13 +1,15 @@
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
+from app.config import settings
 
 class RabbitMQQueue:
     _instance = None
 
     def __init__(self):
-        credentials = pika.PlainCredentials(username='hoanganh', password='hoanganh')
+        self.config = settings.rabbitmq_config
+        credentials = pika.PlainCredentials(**self.config["credentials"])
         self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host='rabbitmq', credentials=credentials)
+            pika.ConnectionParameters(host=self.config["host"], credentials=credentials)
         )
         self.channels: dict[str, BlockingChannel] = {}
 
@@ -19,10 +21,7 @@ class RabbitMQQueue:
     
     def create_channel(self, client_name: str):
         # cấu hình client và id tương ứng
-        clients = {
-            "vdi": 0,
-            "portal": 1
-        }
+        clients = self.config["client_ids"]
         if not self.channels.get(client_name):
             new_channel = self.connection.channel(channel_number=clients.get(client_name))
             self.channels[client_name] = new_channel

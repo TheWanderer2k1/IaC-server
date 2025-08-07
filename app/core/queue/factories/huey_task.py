@@ -65,6 +65,10 @@ def run_infra_job(obj, method_name, **kwargs):
         try:
             mongo_datastore = mongo_creator.create_datastore()
             document = obj.cloud_infra.backup_infra()
+            # get the current backup document
+            backup_data = mongo_datastore.find("infra_backup", {"path_to_tf_workspace": obj.cloud_infra.path_to_tf_workspace})
+            if backup_data[0]['backup_data']:
+                document = document + backup_data[0]['backup_data']
             mongo_datastore.update("infra_backup", 
                 {"path_to_tf_workspace": obj.cloud_infra.path_to_tf_workspace}, 
                 {

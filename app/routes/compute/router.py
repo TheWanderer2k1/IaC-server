@@ -17,8 +17,8 @@ async def handle_create_server(request: Request,
                                params: CommonQueryParams):
     try:
         controller = ServerController(request, infra_creator, params)
-        controller.create_server(server_create_request)
-        # q.add_job(controller.create_server, server_create_request=server_create_request)
+        # controller.create_server(server_create_request)
+        q.add_infra_job(request.client.host, controller, "create_server", server_create_request=server_create_request)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
@@ -32,9 +32,8 @@ async def handle_update_server(request: Request,
                                params: CommonQueryParams):
     try:
         controller = ServerController(request, infra_creator, params)
-        # q.add_job(controller.update_server, server_id=server_id, 
-        #                                     server_update_request=server_update_request)
-        controller.update_server(server_id, server_update_request)
+        # controller.update_server(server_id, server_update_request)
+        q.add_infra_job(request.client.host, controller, "update_server", server_id=server_id, server_update_request=server_update_request)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
@@ -47,8 +46,8 @@ async def handle_delete_server(request: Request,
                                params: CommonQueryParams):
     try:
         controller = ServerController(request, infra_creator, params)
-        result = controller.delete_server(server_id)
-        # q.add_job(controller.delete_server, server_id=server_id)
+        # result = controller.delete_server(server_id)
+        q.add_infra_job(request.client.host, controller, "delete_server", server_id=server_id)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
@@ -62,8 +61,8 @@ async def handle_attach_volume(request: Request,
                                params: CommonQueryParams):
     try:
         controller = ServerController(request, infra_creator, params)
-        # q.add_job(controller.attach_volume, server_id=server_id, volume_attachment_request=volume_attachment_request)
-        controller.attach_volume(server_id, volume_attachment_request)
+        # controller.attach_volume(server_id, volume_attachment_request)
+        q.add_infra_job(request.client.host, controller, "attach_volume", server_id=server_id, volume_attachment_request=volume_attachment_request)
         return JSONResponse(content={
             "message": "ok"
         },status_code=200)
@@ -77,8 +76,8 @@ async def handle_detach_volume(request: Request,
                                params: CommonQueryParams):
     try:
         controller = ServerController(request, infra_creator, params)
-        # q.add_job(controller.detach_volume, server_id, volume_id)
-        controller.detach_volume(server_id, volume_id)
+        # controller.detach_volume(server_id, volume_id)
+        q.add_infra_job(request.client.host, controller, "detach_volume", server_id=server_id, volume_id=volume_id)
         return JSONResponse(content={
                 "message": "ok"
             },status_code=200)

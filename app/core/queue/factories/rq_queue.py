@@ -1,12 +1,12 @@
 from rq import Queue
 from rq.job import Job
 from redis import Redis
-from app.config import redis_conn
+from app.config import settings
 from app.core.queue.interfaces.queue_interface import IQueue
 
 class RQQueue(IQueue):
     def __init__(self):
-        self.redis_conn = Redis(**redis_conn)
+        self.redis_conn = Redis(**settings.redis_conn)
         self.queue = Queue(connection=self.redis_conn)
 
     def add_job(self, func, **kwargs):

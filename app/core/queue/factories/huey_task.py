@@ -15,8 +15,10 @@ huey = RedisHuey('huey-queue', **settings.redis_conn, db=0)
 
 msg_queue = RabbitMQQueue().get_instance()
 # init channel, exchange and queue for all client
-msg_queue.create_channel("192.168.239.1")
-msg_queue.init_direct_exchange_and_queue("192.168.239.1")
+client_ids = settings.rabbitmq_config.get("client_ids", [])
+for key in client_ids:
+    msg_queue.create_channel(key)
+    msg_queue.init_direct_exchange_and_queue(key)
 
 # make http request
 async def make_http_request(url, data):

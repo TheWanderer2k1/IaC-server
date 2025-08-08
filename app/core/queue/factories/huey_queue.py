@@ -20,7 +20,7 @@ class HueyQueue(IQueue):
         
     def _run_infra_job(self, host_ip, obj, method_name, **kwargs):
         try:
-            run_infra_job(obj, host_ip, method_name, **kwargs)
+            run_infra_job(host_ip, obj, method_name, **kwargs)
         except Exception as e:
             raise QueueJobException(f"Failed to run job: {e}")
     
